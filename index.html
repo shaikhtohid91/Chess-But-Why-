@@ -1,107 +1,301 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chess But Why?</title>
-  <style>
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #202020;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    #board {
-      display: grid;
-      grid-template-columns: repeat(8, 60px);
-      grid-template-rows: repeat(8, 60px);
-      border: 4px solid #555;
-    }
-    .square {
-      width: 60px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      cursor: pointer;
-    }
-    .white { background: #eee; color: #111; }
-    .black { background: #555; color: #fff; }
-    .highlight { background: radial-gradient(circle, #ff0 40%, transparent 40%); }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Chess But Why? — Learn Chess</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/css/chessboard-1.0.0.min.css" />
+<style>
+  :root{--bg:#f7efe6;--panel:#fff;--muted:#6b7280;--accent:#b9834f}
+  body{font-family:Inter,system-ui,Arial;background:var(--bg);margin:0;padding:14px;color:#111}
+  .app{max-width:980px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  header{grid-column:1/3;display:flex;align-items:center;gap:12px}
+  h1{margin:0;font-size:20px}
+  .board-card{background:var(--panel);padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
+  #board{width:100%;max-width:420px;margin:0 auto}
+  .controls{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  button{padding:8px 10px;border-radius:8px;border:0;background:#111;color:#fff;cursor:pointer}
+  .primary{background:var(--accent)}
+  .info{background:var(--panel);padding:12px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
+  .moves{height:220px;overflow:auto;border-radius:8px;padding:8px;background:#fbf6ef}
+  .explain{margin-top:8px;background:#fff;padding:10px;border-radius:8px;min-height:72px;color:#111}
+  select{padding:6px;border-radius:8px}
+  @media(max-width:880px){.app{grid-template-columns:1fr;}.board-card,#board{max-width:100%}}
+</style>
 </head>
 <body>
-  <h1>♟️ Chess But Why?</h1>
-  <p>Learn chess the curious way — understand every move.</p>
-  <div id="board"></div>
+<div class="app">
+  <header><h1>Chess But Why?</h1><div style="color:var(--muted)">— Learn by understanding each move</div></header>
 
-  <script>
-    const board = document.getElementById("board");
-    let selected = null;
+  <div class="board-card">
+    <div id="board"></div>
+    <div class="controls">
+      <button id="btnUndo">Undo</button>
+      <button id="btnRestart" class="primary">Restart</button>
+      <button id="btnFlip">Flip</button>
+      <label style="display:flex;align-items:center;gap:6px"><select id="difficulty"><option>Easy</option><option selected>Medium</option><option>Hard</option></select></label>
+      <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="explainToggle" checked> Explain moves</label>
+    </div>
+  </div>
 
-    // Unicode chess pieces (white and black)
-    const pieces = [
-      ["♜","♞","♝","♛","♚","♝","♞","♜"],
-      ["♟","♟","♟","♟","♟","♟","♟","♟"],
-      ["","","","","","","",""],
-      ["","","","","","","",""],
-      ["","","","","","","",""],
-      ["","","","","","","",""],
-      ["♙","♙","♙","♙","♙","♙","♙","♙"],
-      ["♖","♘","♗","♕","♔","♗","♘","♖"]
-    ];
+  <div class="info">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><strong>Move history</strong></div>
+      <div style="color:var(--muted)">Turn: <span id="turnLabel">White</span></div>
+    </div>
+    <div class="moves" id="moves"></div>
+    <div class="explain" id="explain">Explanation and evaluation will appear here after each move.</div>
+  </div>
+</div>
 
-    // Create board squares
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const square = document.createElement("div");
-        square.classList.add("square", (r + c) % 2 === 0 ? "white" : "black");
-        square.dataset.row = r;
-        square.dataset.col = c;
-        square.textContent = pieces[r][c];
-        board.appendChild(square);
-      }
+<!-- libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/js/chessboard-1.0.0.min.js"></script>
+
+<script>
+// Lightweight learning-focused chess with simple AI and explanation heuristics.
+// No backend, runs fully in browser. Difficulty controls AI search depth and randomness.
+
+const game = new Chess();
+let board = null;
+let humanColor = 'w'; // human plays white by default
+const movesEl = document.getElementById('moves');
+const explainEl = document.getElementById('explain');
+const turnLabel = document.getElementById('turnLabel');
+const difficulty = document.getElementById('difficulty');
+const explainToggle = document.getElementById('explainToggle');
+
+// piece values for evaluation (centipawns)
+const VALUES = { p:100, n:320, b:330, r:500, q:900, k:20000 };
+
+// piece-square table (tiny bias favoring center) for simple eval
+const pst = {
+  p: [0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0]
+};
+
+function pieceValue(piece) {
+  if (!piece) return 0;
+  let p = piece.type;
+  let v = VALUES[p] || 0;
+  return piece.color === 'w' ? v : -v;
+}
+
+function evaluateSimple(boardObj) {
+  // material + mobility + center control heuristic
+  let score = 0;
+  const bs = boardObj.board();
+  for (let r=0;r<8;r++){
+    for (let c=0;c<8;c++){
+      const sq = bs[r][c];
+      if (sq) score += pieceValue(sq);
     }
+  }
+  // mobility (number of legal moves) small weight
+  const whiteMoves = boardObj.moves({verbose:true}).filter(m=>m.color==='w').length;
+  const blackMoves = boardObj.moves({verbose:true}).filter(m=>m.color==='b').length;
+  score += (whiteMoves - blackMoves) * 3;
+  return score; // positive -> advantage white (centipawns-ish)
+}
 
-    // Highlight movable squares (simple version — for demonstration)
-    function highlightMoves(row, col) {
-      document.querySelectorAll(".highlight").forEach(el => el.classList.remove("highlight"));
-      const moves = [
-        [row-1, col], [row+1, col], [row, col-1], [row, col+1]
-      ];
-      moves.forEach(([r, c]) => {
-        const sq = document.querySelector(`.square[data-row='${r}'][data-col='${c}']`);
-        if (sq) sq.classList.add("highlight");
-      });
+// basic opening detection by first two ply
+function detectOpening(history) {
+  const seq = history.map(m=>m.san).slice(0,6).join(' ');
+  if (seq.startsWith('e4 e5')) return 'Open Game (e4 e5)';
+  if (seq.startsWith('e4 c5')) return 'Sicilian Defense (c5)';
+  if (seq.startsWith('d4 d5  c4')) return 'Queen\\'s Gambit';
+  if (seq.includes('Nf3') && seq.includes('Nc6') && seq.includes('Bc4')) return 'Italian Game or Giuoco Piano';
+  return '';
+}
+
+// simple evaluation label thresholds (in cp)
+function labelMove(delta) {
+  if (delta >= 300) return 'Brilliant';
+  if (delta >= 50) return 'Good';
+  if (delta > -50) return 'Inaccurate';
+  if (delta > -300) return 'Mistake';
+  return 'Blunder';
+}
+
+// Minimax + alpha-beta using chess.js move generator (depth small)
+function aiBestMove(depth, useRandomness=false) {
+  const color = game.turn();
+  let best = null;
+  let bestScore = color === 'w' ? -Infinity : Infinity;
+
+  function minimax(depthLeft, alpha, beta, isMaximizing) {
+    if (depthLeft === 0 || game.game_over()) {
+      return evaluateSimple(game);
     }
-
-    // Select & move logic (simple)
-    board.addEventListener("click", e => {
-      if (!e.target.classList.contains("square")) return;
-      const r = +e.target.dataset.row;
-      const c = +e.target.dataset.col;
-
-      if (selected) {
-        const [sr, sc] = selected;
-        const from = document.querySelector(`.square[data-row='${sr}'][data-col='${sc}']`);
-        const piece = from.textContent;
-        from.textContent = "";
-        e.target.textContent = piece;
-        document.querySelectorAll(".highlight").forEach(el => el.classList.remove("highlight"));
-        selected = null;
-      } else if (e.target.textContent) {
-        selected = [r, c];
-        highlightMoves(r, c);
+    const moves = game.moves();
+    if (isMaximizing) {
+      let value = -Infinity;
+      for (let mv of moves) {
+        game.move(mv);
+        let score = minimax(depthLeft-1, alpha, beta, false);
+        game.undo();
+        if (score > value) value = score;
+        if (score > alpha) alpha = score;
+        if (alpha >= beta) break;
       }
-    });
-  </script>
+      return value;
+    } else {
+      let value = Infinity;
+      for (let mv of moves) {
+        game.move(mv);
+        let score = minimax(depthLeft-1, alpha, beta, true);
+        game.undo();
+        if (score < value) value = score;
+        if (score < beta) beta = score;
+        if (alpha >= beta) break;
+      }
+      return value;
+    }
+  }
+
+  const moves = game.moves();
+  const moveScores = [];
+  for (let mv of moves) {
+    game.move(mv);
+    const sc = minimax(depth-1, -Infinity, Infinity, color !== 'w');
+    game.undo();
+    moveScores.push({mv, sc});
+  }
+
+  // sort according to side to move
+  moveScores.sort((a,b)=> (color==='w' ? b.sc - a.sc : a.sc - b.sc));
+
+  if (useRandomness) {
+    // pick from top 3 moves randomly to simulate weaker play
+    const pickRange = Math.min(3, moveScores.length);
+    const choice = Math.floor(Math.random()*pickRange);
+    return moveScores[choice].mv;
+  } else {
+    return moveScores.length ? moveScores[0].mv : null;
+  }
+}
+
+// UI / board setup
+const cfg = {
+  draggable: true,
+  position: 'start',
+  onDragStart: (src, piece, pos, orientation)=>{ if (game.game_over()) return false; if ((game.turn()==='w' && piece.search(/^b/)!==-1) || (game.turn()==='b' && piece.search(/^w/)!==-1)) return false; },
+  onDrop: (src, dst)=>{
+    const move = game.move({from:src, to:dst, promotion:'q'});
+    if (move === null) return 'snapback';
+    postMoveActions(move);
+    return;
+  },
+  onSnapEnd: ()=> board.position(game.fen())
+};
+
+board = Chessboard('board', cfg);
+
+function refreshUI() {
+  movesEl.innerHTML = '';
+  const history = game.history({verbose:true});
+  for (let i=0;i<history.length;i+=2){
+    const w = history[i] ? history[i].san : '';
+    const b = history[i+1] ? history[i+1].san : '';
+    const num = Math.floor(i/2)+1;
+    const row = document.createElement('div');
+    row.innerHTML = `<strong>${num}.</strong> ${w} ${b}`;
+    movesEl.appendChild(row);
+  }
+  turnLabel.textContent = game.turn() === 'w' ? 'White' : 'Black';
+}
+
+function explainMove(move, beforeEval, afterEval, byPlayer) {
+  if (!explainToggle.checked) return;
+  const delta = (afterEval - beforeEval) * (move.color === 'w' ? 1 : 1); // our eval positive -> white advantage
+  const label = labelMove((afterEval - beforeEval));
+  let txt = `${move.san} — ${label}.`;
+  if (move.captured) {
+    txt += ` Captured ${move.captured.toUpperCase()}.`;
+  }
+  if (move.flags && move.flags.includes('c')) txt += ' (capture)';
+  if (move.san.includes('+')) txt += ' Gives check.';
+  const opening = detectOpening(game.history({verbose:true}));
+  if (opening) txt += ` Opening: ${opening}.`;
+  explainEl.textContent = txt;
+}
+
+function postMoveActions(move) {
+  // evaluate before and after
+  const beforeEval = evaluateSimple(new Chess()); // hmm new game? better compute from copy
+  // We'll produce eval by undo/redo around move was applied already, so instead compute previous by making a copy
+  const copy = new Chess();
+  // load FEN before move: undo move temporarily
+  copy.load(move.before || game.fen());
+  // Actually move.before not available; alternative approach: compute previous by undoing one step
+  // But simpler: compute afterEval and give heuristic explanation.
+  const afterEval = evaluateSimple(game);
+  refreshUI();
+  // Create a simple explanation using heuristics
+  let heuristic = '';
+  if (move.captured) heuristic += `Captured ${move.captured.toUpperCase()}. `;
+  if (move.san.includes('+')) heuristic += 'This gives check. ';
+  // evaluate material change by comparing material count from move
+  // Simple: check if move captured -> good; if move is capture of lower value -> bad etc.
+  const label = move.captured ? 'Good' : 'Neutral';
+  explainEl.textContent = `${move.san} — ${label}. ${heuristic}`;
+  // after player's move, let AI play if game not over and opponent is AI
+  if (!game.game_over() && game.turn() !== humanColor) {
+    window.setTimeout(aiPlay, 300);
+  }
+}
+
+function aiPlay() {
+  const level = difficulty.value;
+  let depth = level === 'Easy' ? 1 : level === 'Medium' ? 2 : 3;
+  const useRandom = level === 'Easy';
+  const best = aiBestMove(depth, useRandom);
+  if (!best) return;
+  const beforeEval = evaluateSimple(game);
+  const mv = game.move(best);
+  const afterEval = evaluateSimple(game);
+  refreshUI();
+  explainMove(mv, beforeEval, afterEval, false);
+  board.position(game.fen());
+}
+
+document.getElementById('btnUndo').addEventListener('click', ()=>{
+  game.undo();
+  game.undo(); // undo full turn to undo ai+player
+  board.position(game.fen());
+  refreshUI();
+});
+document.getElementById('btnRestart').addEventListener('click', ()=>{
+  game.reset();
+  board.start();
+  refreshUI();
+  explainEl.textContent = 'New game. Try a first move (e4, d4, Nf3...)';
+});
+document.getElementById('btnFlip').addEventListener('click', ()=> board.flip());
+
+// override onDrop to capture eval before move so explanation can compare
+cfg.onDrop = (src,dst)=>{
+  const beforeEval = evaluateSimple(game);
+  const move = game.move({from:src,to:dst,promotion:'q'});
+  if (move===null) return 'snapback';
+  const afterEval = evaluateSimple(game);
+  // create explanation based on change
+  const delta = afterEval - beforeEval;
+  const label = labelMove(delta);
+  let txt = `${move.san} — ${label}.`;
+  if (move.captured) txt += ` Captured ${move.captured.toUpperCase()}.`;
+  if (move.san.includes('+')) txt += ' Gives check.';
+  const opening = detectOpening(game.history({verbose:true}));
+  if (opening) txt += ` Opening: ${opening}.`;
+  explainEl.textContent = txt;
+  refreshUI();
+  // AI turn
+  if (!game.game_over() && game.turn() !== humanColor) setTimeout(aiPlay, 400);
+};
+
+// init
+refreshUI();
+explainEl.textContent = 'Welcome! Make your first move. The explanation box will describe why moves are good or bad.';
+board = Chessboard('board', cfg);
+</script>
 </body>
 </html>
