@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess But Why?</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #202020;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 60px);
+      grid-template-rows: repeat(8, 60px);
+      border: 4px solid #555;
+    }
+    .square {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: pointer;
+    }
+    .white { background: #eee; color: #111; }
+    .black { background: #555; color: #fff; }
+    .highlight { background: radial-gradient(circle, #ff0 40%, transparent 40%); }
+  </style>
+</head>
+<body>
+  <h1>♟️ Chess But Why?</h1>
+  <p>Learn chess the curious way — understand every move.</p>
+  <div id="board"></div>
+
+  <script>
+    const board = document.getElementById("board");
+    let selected = null;
+
+    // Unicode chess pieces (white and black)
+    const pieces = [
+      ["♜","♞","♝","♛","♚","♝","♞","♜"],
+      ["♟","♟","♟","♟","♟","♟","♟","♟"],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["♙","♙","♙","♙","♙","♙","♙","♙"],
+      ["♖","♘","♗","♕","♔","♗","♘","♖"]
+    ];
+
+    // Create board squares
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const square = document.createElement("div");
+        square.classList.add("square", (r + c) % 2 === 0 ? "white" : "black");
+        square.dataset.row = r;
+        square.dataset.col = c;
+        square.textContent = pieces[r][c];
+        board.appendChild(square);
+      }
+    }
+
+    // Highlight movable squares (simple version — for demonstration)
+    function highlightMoves(row, col) {
+      document.querySelectorAll(".highlight").forEach(el => el.classList.remove("highlight"));
+      const moves = [
+        [row-1, col], [row+1, col], [row, col-1], [row, col+1]
+      ];
+      moves.forEach(([r, c]) => {
+        const sq = document.querySelector(`.square[data-row='${r}'][data-col='${c}']`);
+        if (sq) sq.classList.add("highlight");
+      });
+    }
+
+    // Select & move logic (simple)
+    board.addEventListener("click", e => {
+      if (!e.target.classList.contains("square")) return;
+      const r = +e.target.dataset.row;
+      const c = +e.target.dataset.col;
+
+      if (selected) {
+        const [sr, sc] = selected;
+        const from = document.querySelector(`.square[data-row='${sr}'][data-col='${sc}']`);
+        const piece = from.textContent;
+        from.textContent = "";
+        e.target.textContent = piece;
+        document.querySelectorAll(".highlight").forEach(el => el.classList.remove("highlight"));
+        selected = null;
+      } else if (e.target.textContent) {
+        selected = [r, c];
+        highlightMoves(r, c);
+      }
+    });
+  </script>
+</body>
+</html>
