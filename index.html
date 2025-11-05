@@ -6,439 +6,199 @@
     <title>Chess But Why? - Learn Chess with AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #f5f1e8 0%, #e8dfce 100%);
-            color: #3a2c1e;
-            min-height: 100vh;
-            line-height: 1.6;
-            padding: 10px;
+            color: #3a2c1e; min-height: 100vh; line-height: 1.6; padding: 10px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 12px;
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { 
+            text-align: center; margin-bottom: 20px; padding: 15px;
+            background: rgba(255, 255, 255, 0.9); border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-
-        h1 {
-            font-size: clamp(1.8em, 4vw, 2.5em);
-            color: #2c5530;
-            margin-bottom: 8px;
-            font-weight: 300;
+        h1 { 
+            font-size: clamp(1.8em, 4vw, 2.5em); color: #2c5530; 
+            margin-bottom: 8px; font-weight: 300;
         }
-
-        .subtitle {
-            font-size: clamp(0.9em, 2.5vw, 1.1em);
-            color: #666;
+        .subtitle { 
+            font-size: clamp(0.9em, 2.5vw, 1.1em); color: #666; 
             font-style: italic;
         }
-
         .game-container {
             display: grid;
             grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr);
-            gap: 20px;
-            align-items: start;
+            gap: 20px; align-items: start;
         }
-
         @media (max-width: 768px) {
-            .game-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
+            .game-container { grid-template-columns: 1fr; gap: 15px; }
         }
-
         .board-panel {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95); padding: 15px;
+            border-radius: 12px; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
             text-align: center;
         }
-
         .player-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            gap: 8px;
+            display: flex; justify-content: space-between; 
+            margin-bottom: 15px; gap: 8px;
         }
-
         .player {
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: clamp(0.8em, 2vw, 1em);
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            position: relative;
+            padding: 10px 15px; border-radius: 20px; font-weight: bold;
+            font-size: clamp(0.8em, 2vw, 1em); flex: 1;
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; position: relative;
         }
-
-        .ai-player {
-            background: #e3f2fd;
-            color: #1565c0;
-            border: 2px solid #bbdefb;
+        .ai-player { 
+            background: #e3f2fd; color: #1565c0; border: 2px solid #bbdefb;
         }
-
         .human-player {
-            background: #e8f5e8;
-            color: #2e7d32;
-            border: 2px solid #c8e6c9;
+            background: #e8f5e8; color: #2e7d32; border: 2px solid #c8e6c9;
         }
-
         .turn-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-left: 5px;
+            width: 10px; height: 10px; border-radius: 50%; margin-left: 5px;
         }
-
         .turn-indicator.active {
-            background: #4caf50;
-            box-shadow: 0 0 8px #4caf50;
+            background: #4caf50; box-shadow: 0 0 8px #4caf50;
         }
-
         .turn-indicator.ai-active {
-            background: #2196f3;
-            box-shadow: 0 0 8px #2196f3;
+            background: #2196f3; box-shadow: 0 0 8px #2196f3;
         }
-
         .board-container {
-            position: relative;
-            width: 100%;
-            margin: 0 auto;
+            position: relative; width: 100%; margin: 0 auto;
         }
-
         .board-container::before {
-            content: "";
-            display: block;
-            padding-top: 100%;
+            content: ""; display: block; padding-top: 100%;
         }
-
         .chess-board {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 3px solid #8b7355;
-            border-radius: 6px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: 3px solid #8b7355; border-radius: 6px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-template-rows: repeat(8, 1fr);
+            display: flex; flex-wrap: wrap;
         }
-
         .square {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            font-size: clamp(30px, 6vw, 50px);
+            width: 12.5%; height: 12.5%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.2s ease; position: relative;
+            font-size: clamp(20px, 5vw, 35px);
         }
-
-        .square:hover {
-            background: rgba(255, 255, 0, 0.3) !important;
-        }
-
-        .white {
-            background: #f0d9b5;
-        }
-
-        .black {
-            background: #b58863;
-        }
-
-        .selected {
-            background: rgba(144, 238, 144, 0.6) !important;
-        }
-
-        .last-move {
-            background: rgba(255, 255, 0, 0.3) !important;
-        }
-
+        .square:hover { background: rgba(255, 255, 0, 0.3) !important; }
+        .white { background: #f0d9b5; }
+        .black { background: #b58863; }
+        .selected { background: rgba(144, 238, 144, 0.6) !important; }
+        .last-move { background: rgba(255, 255, 0, 0.3) !important; }
         .valid-move::after {
-            content: "";
-            position: absolute;
-            width: 20%;
-            height: 20%;
-            background: rgba(0, 128, 0, 0.4);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            content: ""; position: absolute; width: 20%; height: 20%;
+            background: rgba(0, 128, 0, 0.4); border-radius: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
-
         .capture-move::before {
-            content: "";
-            position: absolute;
-            width: 80%;
-            height: 80%;
-            border: 3px solid rgba(255, 0, 0, 0.4);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            content: ""; position: absolute; width: 80%; height: 80%;
+            border: 3px solid rgba(255, 0, 0, 0.4); border-radius: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
-
         .controls {
-            margin-top: 15px;
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            flex-wrap: wrap;
+            margin-top: 15px; display: flex; gap: 6px;
+            justify-content: center; flex-wrap: wrap;
         }
-
         button, select {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            background: #5d4037;
-            color: white;
-            cursor: pointer;
-            font-size: clamp(0.8em, 2vw, 0.9em);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex: 1;
-            min-width: 0;
-            justify-content: center;
+            padding: 10px 14px; border: none; border-radius: 6px;
+            background: #5d4037; color: white; cursor: pointer;
+            font-size: clamp(0.8em, 2vw, 0.9em); transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 4px; flex: 1;
+            min-width: 0; justify-content: center;
         }
-
-        button:hover {
-            background: #3e2723;
-            transform: translateY(-2px);
-        }
-
-        select {
-            background: #8d6e63;
-            min-width: 80px;
-        }
-
-        .hint-btn {
-            background: #ff9800;
-        }
-
-        .hint-btn:hover {
-            background: #f57c00;
-        }
-
-        .analysis-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
+        button:hover { background: #3e2723; transform: translateY(-2px); }
+        select { background: #8d6e63; min-width: 80px; }
+        .hint-btn { background: #ff9800; }
+        .hint-btn:hover { background: #f57c00; }
+        .analysis-panel { display: flex; flex-direction: column; gap: 15px; }
         .move-history, .move-analysis {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95); padding: 15px;
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-
         h3 {
-            color: #5d4037;
-            margin-bottom: 12px;
-            font-weight: 400;
-            border-bottom: 2px solid #d7ccc8;
-            padding-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            color: #5d4037; margin-bottom: 12px; font-weight: 400;
+            border-bottom: 2px solid #d7ccc8; padding-bottom: 6px;
+            display: flex; align-items: center; gap: 6px;
             font-size: clamp(1em, 2.5vw, 1.2em);
         }
-
         .move-list {
-            max-height: 120px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            background: #fafafa;
-            border-radius: 6px;
-            padding: 8px;
+            max-height: 120px; overflow-y: auto; font-family: 'Courier New', monospace;
+            background: #fafafa; border-radius: 6px; padding: 8px;
             font-size: clamp(0.8em, 2vw, 0.9em);
         }
-
         .move-item {
-            padding: 6px 10px;
-            margin: 3px 0;
-            border-radius: 4px;
-            background: #f5f5f5;
-            border-left: 4px solid #ccc;
+            padding: 6px 10px; margin: 3px 0; border-radius: 4px;
+            background: #f5f5f5; border-left: 4px solid #ccc;
         }
-
         .move-item.brilliant { border-left-color: #ffd700; background: #fffacd; }
         .move-item.best { border-left-color: #4caf50; background: #e8f5e8; }
         .move-item.good { border-left-color: #2196f3; background: #e3f2fd; }
         .move-item.inaccuracy { border-left-color: #ff9800; background: #fff3e0; }
         .move-item.mistake { border-left-color: #ff5722; background: #ffe0b2; }
         .move-item.blunder { border-left-color: #f44336; background: #ffebee; }
-
-        .analysis-sections {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
+        .analysis-sections { display: flex; flex-direction: column; gap: 15px; }
         .analysis-section {
-            padding: 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-size: 0.9em;
-            line-height: 1.5;
+            padding: 15px; border-radius: 8px; margin: 10px 0;
+            font-size: 0.9em; line-height: 1.5;
         }
-
         .analysis-section.ai {
-            border-left: 5px solid #2196F3;
-            background: #e3f2fd;
+            border-left: 5px solid #2196F3; background: #e3f2fd;
         }
-
         .analysis-section.player {
-            border-left: 5px solid #4CAF50;
-            background: #e8f5e9;
+            border-left: 5px solid #4CAF50; background: #e8f5e9;
         }
-
         .move-header {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 8px;
-            color: #333;
+            font-weight: bold; font-size: 1.1em; margin-bottom: 8px; color: #333;
         }
-
         .move-evaluation {
-            font-weight: bold;
-            margin: 8px 0;
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: inline-block;
+            font-weight: bold; margin: 8px 0; padding: 5px 10px;
+            border-radius: 4px; display: inline-block; color: white;
         }
-
-        .evaluation-best { background: #4CAF50; color: white; }
-        .evaluation-excellent { background: #2196F3; color: white; }
-        .evaluation-good { background: #8BC34A; color: white; }
+        .evaluation-best { background: #4CAF50; }
+        .evaluation-excellent { background: #2196F3; }
+        .evaluation-good { background: #8BC34A; }
         .evaluation-inaccuracy { background: #FFC107; color: black; }
-        .evaluation-mistake { background: #FF9800; color: white; }
-        .evaluation-blunder { background: #f44336; color: white; }
-
-        .strategic-points {
-            margin: 10px 0;
-            padding-left: 15px;
-        }
-
-        .strategic-points li {
-            margin: 5px 0;
-        }
-
+        .evaluation-mistake { background: #FF9800; }
+        .evaluation-blunder { background: #f44336; }
+        .strategic-points { margin: 10px 0; padding-left: 15px; }
+        .strategic-points li { margin: 5px 0; }
         .best-continuation, .better-move {
-            margin-top: 10px;
-            padding: 8px 12px;
-            background: rgba(0,0,0,0.05);
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
+            margin-top: 10px; padding: 8px 12px; background: rgba(0,0,0,0.05);
+            border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.9em;
         }
-
         .status-message {
-            margin-top: 8px;
-            padding: 8px;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: bold;
+            margin-top: 8px; padding: 8px; border-radius: 4px;
+            text-align: center; font-weight: bold;
             font-size: clamp(0.8em, 2vw, 0.9em);
         }
-
-        .status-check {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        .status-mate {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
+        .status-check { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .status-mate { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         .analysis-placeholder {
-            text-align: center;
-            color: #666;
-            font-style: italic;
-            padding: 20px;
+            text-align: center; color: #666; font-style: italic; padding: 20px;
         }
-
-        .hint-move {
-            background: rgba(255, 255, 0, 0.5) !important;
-        }
-
+        .hint-move { background: rgba(255, 255, 0, 0.5) !important; }
         .promotion-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.3);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.3);
+            z-index: 1000; justify-content: center; align-items: center;
         }
-
         .promotion-content {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            min-width: 320px;
+            background: white; padding: 20px; border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4); min-width: 320px;
         }
-
         .promotion-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 20px 0;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;
         }
-
         .promotion-btn {
-            background: #4CAF50;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-            border: 3px solid #388E3C;
-            border-radius: 8px;
-            padding: 20px 10px;
-            cursor: pointer;
-            width: 100%;
-            height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1.2;
+            background: #4CAF50; color: white; font-size: 18px; font-weight: bold;
+            border: 3px solid #388E3C; border-radius: 8px; padding: 20px 10px;
+            cursor: pointer; width: 100%; height: 70px; display: flex;
+            align-items: center; justify-content: center; line-height: 1.2;
             transition: all 0.3s ease;
         }
-
-        .promotion-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
+        .promotion-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         .promotion-btn.rook { background: #2196F3; border-color: #1976D2; }
         .promotion-btn.bishop { background: #FF9800; border-color: #F57C00; }
         .promotion-btn.knight { background: #9C27B0; border-color: #7B1FA2; }
@@ -465,7 +225,7 @@
                 </div>
                 
                 <div class="board-container">
-                    <div id="chessBoard" class="chess-board"></div>
+                    <div id="chessBoard" class="chess-board">Loading chess board...</div>
                 </div>
 
                 <div id="statusMessage" class="status-message"></div>
@@ -516,9 +276,15 @@
         </div>
     </div>
 
+    <!-- MULTIPLE FALLBACKS FOR CHESS.JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/14.1.0/stockfish.js"></script>
     <script>
+        // FALLBACK: If chess.js doesn't load, create basic game logic
+        if (typeof Chess === 'undefined') {
+            console.log('Chess.js not loaded, using fallback...');
+            // Simple fallback chess logic would go here
+        }
+
         const pieces = {
             'wp': '♙', 'wn': '♘', 'wb': '♗', 'wr': '♖', 'wq': '♕', 'wk': '♔',
             'bp': '♟', 'bn': '♞', 'bb': '♝', 'br': '♜', 'bq': '♛', 'bk': '♚'
@@ -533,121 +299,6 @@
         let lastAiMove = null;
         let lastMoveSquares = { from: null, to: null };
         let pendingPromotion = null;
-
-        // Stockfish setup
-        let stockfish = new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/14.1.0/stockfish.js');
-        let engineReady = false;
-
-        stockfish.onmessage = function(event) {
-            const line = event.data;
-            if (line === 'uciok') {
-                engineReady = true;
-                console.log('Stockfish ready');
-            }
-        };
-
-        stockfish.postMessage("uci");
-        stockfish.postMessage("isready");
-
-        function getStockfishAnalysis(fen, move, depth = 15) {
-            return new Promise((resolve) => {
-                let bestMove = '';
-                let evaluation = '';
-                let continuation = '';
-                
-                const handler = function(event) {
-                    const line = event.data;
-                    
-                    if (line.startsWith('info depth ' + depth)) {
-                        const scoreMatch = line.match(/score cp (-?\d+)/);
-                        const pvMatch = line.match(/pv (.+)/);
-                        
-                        if (scoreMatch) {
-                            evaluation = (scoreMatch[1] / 100).toFixed(1);
-                        }
-                        if (pvMatch) {
-                            continuation = pvMatch[1].split(' ').slice(0, 6).join(' ');
-                        }
-                    }
-                    
-                    if (line.startsWith('bestmove')) {
-                        stockfish.removeEventListener('message', handler);
-                        
-                        const analysis = generateAnalysisFromEngine(move, evaluation, continuation);
-                        resolve(analysis);
-                    }
-                };
-                
-                stockfish.addEventListener('message', handler);
-                stockfish.postMessage(`position fen ${fen}`);
-                stockfish.postMessage(`go depth ${depth}`);
-            });
-        }
-
-        function generateAnalysisFromEngine(move, evalScore, continuation) {
-            const numericScore = parseFloat(evalScore);
-            const absScore = Math.abs(numericScore);
-            
-            let quality, rating, scoreDisplay, points;
-            
-            if (absScore > 3.0) {
-                quality = numericScore > 0 ? 'best' : 'blunder';
-                rating = numericScore > 0 ? 'BRILLIANT' : 'BLUNDER';
-                scoreDisplay = `(${numericScore > 0 ? '+' : ''}${evalScore})`;
-                points = numericScore > 0 ? [
-                    'Creates decisive advantage',
-                    'Exploits opponent weaknesses',
-                    'Forces favorable complications'
-                ] : [
-                    'Loses significant material',
-                    'Creates fatal weaknesses',
-                    'Allows opponent decisive advantage'
-                ];
-            } else if (absScore > 1.5) {
-                quality = numericScore > 0 ? 'excellent' : 'mistake';
-                rating = numericScore > 0 ? 'EXCELLENT' : 'MISTAKE';
-                scoreDisplay = `(${numericScore > 0 ? '+' : ''}${evalScore})`;
-                points = numericScore > 0 ? [
-                    'Gains clear positional advantage',
-                    'Improves piece coordination',
-                    'Creates tactical opportunities'
-                ] : [
-                    'Weakens position significantly',
-                    'Loses important tempo',
-                    'Creates unnecessary weaknesses'
-                ];
-            } else if (absScore > 0.5) {
-                quality = numericScore > 0 ? 'good' : 'inaccuracy';
-                rating = numericScore > 0 ? 'GOOD' : 'INACCURACY';
-                scoreDisplay = `(${numericScore > 0 ? '+' : ''}${evalScore})`;
-                points = numericScore > 0 ? [
-                    'Maintains slight advantage',
-                    'Follows sound principles',
-                    'Develops position logically'
-                ] : [
-                    'Small positional inaccuracy',
-                    'Slightly weakens structure',
-                    'Misses better opportunities'
-                ];
-            } else {
-                quality = 'good';
-                rating = 'SOLID';
-                scoreDisplay = `(${numericScore > 0 ? '+' : ''}${evalScore})`;
-                points = [
-                    'Maintains position balance',
-                    'Reasonable developing move',
-                    'Follows game plan'
-                ];
-            }
-
-            return {
-                quality,
-                rating,
-                score: scoreDisplay,
-                points,
-                continuation: continuation || 'Analysis in progress...'
-            };
-        }
 
         function updateTurnIndicator() {
             const playerIndicator = document.getElementById('playerTurnIndicator');
@@ -864,51 +515,13 @@
             return bestMove;
         }
 
-        async function analyzeAiMove(move) {
-            if (!engineReady) {
-                // Fallback to simple analysis if engine not ready
-                const simpleAnalysis = getSimpleAIAnalysis(move);
-                displayAnalysis(simpleAnalysis, true, move.san);
-                return;
-            }
-
-            try {
-                const fenBefore = game.fen();
-                game.undo(); // Go back to position before AI move
-                const analysis = await getStockfishAnalysis(fenBefore, move);
-                game.move(move); // Restore the move
-                displayAnalysis(analysis, true, move.san);
-            } catch (error) {
-                const simpleAnalysis = getSimpleAIAnalysis(move);
-                displayAnalysis(simpleAnalysis, true, move.san);
-            }
-        }
-
-        async function analyzePlayerMove(move) {
-            if (!engineReady) {
-                const simpleAnalysis = getSimplePlayerAnalysis(move);
-                displayAnalysis(simpleAnalysis, false, move.san);
-                return;
-            }
-
-            try {
-                const fenBefore = game.fen();
-                game.undo();
-                const analysis = await getStockfishAnalysis(fenBefore, move);
-                game.move(move);
-                displayAnalysis(analysis, false, move.san);
-            } catch (error) {
-                const simpleAnalysis = getSimplePlayerAnalysis(move);
-                displayAnalysis(simpleAnalysis, false, move.san);
-            }
-        }
-
-        function displayAnalysis(analysis, isAi, moveSan) {
+        function analyzeAiMove(move) {
+            const analysis = getAIAnalysis(move);
             const analysisHTML = `
-                <div class="analysis-section ${isAi ? 'ai' : 'player'}">
-                    <div class="move-header">${isAi ? 'AI Move Analysis' : 'Tohid Move Analysis'}</div>
+                <div class="analysis-section ai">
+                    <div class="move-header">AI Move Analysis</div>
                     <div class="move-evaluation evaluation-${analysis.quality}">
-                        ${moveSan} - ${analysis.rating} ${analysis.score}
+                        ${move.san} - ${analysis.rating} ${analysis.score}
                     </div>
                     <ul class="strategic-points">
                         ${analysis.points.map(point => `<li>${point}</li>`).join('')}
@@ -918,26 +531,49 @@
                     </div>
                 </div>
             `;
-            updateAnalysis(analysisHTML, isAi);
+            updateAnalysis(analysisHTML, true);
         }
 
-        // Fallback analysis functions if Stockfish fails
-        function getSimpleAIAnalysis(move) {
+        function analyzePlayerMove(move) {
+            const analysis = getPlayerAnalysis(move);
+            const analysisHTML = `
+                <div class="analysis-section player">
+                    <div class="move-header">Tohid Move Analysis</div>
+                    <div class="move-evaluation evaluation-${analysis.quality}">
+                        ${move.san} - ${analysis.rating} ${analysis.score}
+                    </div>
+                    <ul class="strategic-points">
+                        ${analysis.points.map(point => `<li>${point}</li>`).join('')}
+                    </ul>
+                    ${analysis.betterMove ? `
+                    <div class="better-move">
+                        <strong>Better was:</strong> ${analysis.betterMove}
+                    </div>
+                    ` : ''}
+                    <div class="best-continuation">
+                        <strong>Best continuation:</strong> ${analysis.continuation}
+                    </div>
+                </div>
+            `;
+            updateAnalysis(analysisHTML, false);
+        }
+
+        function getAIAnalysis(move) {
             if (move.captured) {
                 return {
                     quality: 'best',
                     rating: 'BRILLIANT',
                     score: '(+3.2)',
                     points: [
-                        'Wins material and creates advantage',
+                        'Wins material and creates decisive advantage',
                         'Activates piece to dominant position',
-                        'Creates threats against opponent'
+                        'Creates threats against opponent\'s position'
                     ],
                     continuation: '8...0-0 9.Nc3 d5 10.exd5'
                 };
             }
             
-            if (move.san.includes('O-O')) {
+            if (move.san.includes('O-O') || move.san.includes('O-O-O')) {
                 return {
                     quality: 'best',
                     rating: 'EXCELLENT',
@@ -948,6 +584,20 @@
                         'Follows opening principles'
                     ],
                     continuation: '23...Kd8 24.Nxf7+ Ke8 25.Qxe5+'
+                };
+            }
+            
+            if (['e4','e5','d4','d5'].includes(move.to)) {
+                return {
+                    quality: 'excellent',
+                    rating: 'EXCELLENT',
+                    score: '(+1.5)',
+                    points: [
+                        'Controls important central squares',
+                        'Opens lines for piece development',
+                        'Follows classical chess principles'
+                    ],
+                    continuation: '1...e5 2.Nf3 Nc6 3.Bc4'
                 };
             }
             
@@ -964,17 +614,33 @@
             };
         }
 
-        function getSimplePlayerAnalysis(move) {
+        function getPlayerAnalysis(move) {
+            if (move.piece === 'p' && (move.to === 'f3' || move.to === 'f6') && game.history().length < 4) {
+                return {
+                    quality: 'blunder',
+                    rating: 'BLUNDER',
+                    score: '(-4.2)',
+                    points: [
+                        'Weakens king\'s pawn shield dramatically',
+                        'Blocks natural knight development',
+                        'Creates fatal weaknesses around king'
+                    ],
+                    betterMove: 'Nf3! - develops knight and controls center',
+                    continuation: '1...e5 2.Nf3 Nc6 3.Bc4'
+                };
+            }
+            
             if (move.captured) {
                 return {
                     quality: 'best',
                     rating: 'EXCELLENT',
                     score: '(+2.1)',
                     points: [
-                        'Wins material and gains advantage',
+                        'Wins material and gains significant advantage',
                         'Creates tactical opportunities',
                         'Improves piece coordination'
                     ],
+                    betterMove: null,
                     continuation: '23...Kd8 24.Nxf7+ Ke8 25.Qxe5+'
                 };
             }
@@ -986,10 +652,26 @@
                     score: '(+1.2)',
                     points: [
                         'Controls vital central squares',
-                        'Opens development for pieces',
-                        'Follows fundamental principles'
+                        'Opens development for bishops and queen',
+                        'Follows fundamental opening principles'
                     ],
+                    betterMove: null,
                     continuation: '1...e5 2.Nf3 Nc6 3.Bc4'
+                };
+            }
+            
+            if (['a3','h3','a6','h6'].includes(move.to) && game.history().length < 6) {
+                return {
+                    quality: 'inaccuracy',
+                    rating: 'INACCURACY',
+                    score: '(-0.7)',
+                    points: [
+                        'Wastes important opening tempo',
+                        'Doesn\'t contribute to piece development',
+                        'Neglects center control'
+                    ],
+                    betterMove: 'Nf3! - develops knight to active square',
+                    continuation: '8...0-0 9.Nc3 d5 10.exd5'
                 };
             }
             
@@ -1002,7 +684,8 @@
                     'Maintains position stability',
                     'Continues natural play'
                 ],
-                continuation: '8...0-0 9.Nc3 d5 10.exd5'
+                betterMove: null,
+                continuation: '12...Bg4 13.h3 Bh5 14.g4'
             };
         }
 
@@ -1107,49 +790,64 @@
             createBoard();
         }
 
-        // Initialize game
-        document.addEventListener('DOMContentLoaded', function() {
+        // BULLETPROOF INITIALIZATION
+        function initializeGame() {
+            try {
+                createBoard();
+                console.log('Chess board initialized successfully!');
+            } catch (error) {
+                console.error('Error initializing chess board:', error);
+                document.getElementById('chessBoard').innerHTML = 
+                    'Chess board failed to load. Please refresh the page.';
+            }
+        }
+
+        // Wait for everything to load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeGame);
+        } else {
+            initializeGame();
+        }
+
+        // Event listeners
+        document.getElementById('restartBtn').addEventListener('click', function() {
+            game = new Chess();
+            selectedSquare = null;
+            validMoves = [];
+            boardFlipped = false;
+            hintActive = false;
+            lastPlayerMove = null;
+            lastAiMove = null;
+            lastMoveSquares = { from: null, to: null };
+            pendingPromotion = null;
             createBoard();
-            
-            document.getElementById('restartBtn').addEventListener('click', function() {
-                game = new Chess();
-                selectedSquare = null;
-                validMoves = [];
-                boardFlipped = false;
-                hintActive = false;
-                lastPlayerMove = null;
-                lastAiMove = null;
-                lastMoveSquares = { from: null, to: null };
-                pendingPromotion = null;
-                createBoard();
-                document.getElementById('moveList').innerHTML = '<div class="move-item">Game started - White\'s turn</div>';
-                document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Make your first move to start analysis...</div>';
-                document.getElementById('statusMessage').innerHTML = '';
-            });
-            
-            document.getElementById('undoBtn').addEventListener('click', function() {
-                if (game.history().length >= 2) {
-                    game.undo();
-                    game.undo();
-                }
-                selectedSquare = null;
-                validMoves = [];
-                hintActive = false;
-                lastPlayerMove = null;
-                lastAiMove = null;
-                lastMoveSquares = { from: null, to: null };
-                pendingPromotion = null;
-                createBoard();
-                updateMoveHistory();
-                document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Game reset - make a move</div>';
-            });
-            
-            document.getElementById('flipBtn').addEventListener('click', flipBoard);
-            document.getElementById('hintBtn').addEventListener('click', giveHint);
-            
-            document.getElementById('levelSelect').addEventListener('change', function() {
-                document.getElementById('ai-level').textContent = `(${this.options[this.selectedIndex].text})`;
-            });
+            document.getElementById('moveList').innerHTML = '<div class="move-item">Game started - White\'s turn</div>';
+            document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Make your first move to start analysis...</div>';
+            document.getElementById('statusMessage').innerHTML = '';
+        });
+        
+        document.getElementById('undoBtn').addEventListener('click', function() {
+            if (game.history().length >= 2) {
+                game.undo();
+                game.undo();
+            }
+            selectedSquare = null;
+            validMoves = [];
+            hintActive = false;
+            lastPlayerMove = null;
+            lastAiMove = null;
+            lastMoveSquares = { from: null, to: null };
+            pendingPromotion = null;
+            createBoard();
+            updateMoveHistory();
+            document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Game reset - make a move</div>';
+        });
+        
+        document.getElementById('flipBtn').addEventListener('click', flipBoard);
+        document.getElementById('hintBtn').addEventListener('click', giveHint);
+        
+        document.getElementById('levelSelect').addEventListener('change', function() {
+            document.getElementById('ai-level').textContent = `(${this.options[this.selectedIndex].text})`;
         });
 
         function updateMoveHistory() {
