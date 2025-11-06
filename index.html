@@ -6,199 +6,429 @@
     <title>Chess But Why? - Learn Chess with AI</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #f5f1e8 0%, #e8dfce 100%);
-            color: #3a2c1e; min-height: 100vh; line-height: 1.6; padding: 10px;
+            color: #3a2c1e;
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 10px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        header { 
-            text-align: center; margin-bottom: 20px; padding: 15px;
-            background: rgba(255, 255, 255, 0.9); border-radius: 12px;
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        h1 { 
-            font-size: clamp(1.8em, 4vw, 2.5em); color: #2c5530; 
-            margin-bottom: 8px; font-weight: 300;
+
+        h1 {
+            font-size: clamp(1.8em, 4vw, 2.5em);
+            color: #2c5530;
+            margin-bottom: 8px;
+            font-weight: 300;
         }
-        .subtitle { 
-            font-size: clamp(0.9em, 2.5vw, 1.1em); color: #666; 
+
+        .subtitle {
+            font-size: clamp(0.9em, 2.5vw, 1.1em);
+            color: #666;
             font-style: italic;
         }
+
         .game-container {
             display: grid;
             grid-template-columns: minmax(300px, 1fr) minmax(300px, 1fr);
-            gap: 20px; align-items: start;
+            gap: 20px;
+            align-items: start;
         }
+
         @media (max-width: 768px) {
-            .game-container { grid-template-columns: 1fr; gap: 15px; }
+            .game-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
         }
+
         .board-panel {
-            background: rgba(255, 255, 255, 0.95); padding: 15px;
-            border-radius: 12px; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
             text-align: center;
         }
+
         .player-info {
-            display: flex; justify-content: space-between; 
-            margin-bottom: 15px; gap: 8px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 8px;
         }
+
         .player {
-            padding: 10px 15px; border-radius: 20px; font-weight: bold;
-            font-size: clamp(0.8em, 2vw, 1em); flex: 1;
-            display: flex; align-items: center; justify-content: center;
-            gap: 6px; position: relative;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: clamp(0.8em, 2vw, 1em);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
         }
-        .ai-player { 
-            background: #e3f2fd; color: #1565c0; border: 2px solid #bbdefb;
+
+        .ai-player {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 2px solid #bbdefb;
         }
+
         .human-player {
-            background: #e8f5e8; color: #2e7d32; border: 2px solid #c8e6c9;
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 2px solid #c8e6c9;
         }
+
         .turn-indicator {
-            width: 10px; height: 10px; border-radius: 50%; margin-left: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 5px;
         }
+
         .turn-indicator.active {
-            background: #4caf50; box-shadow: 0 0 8px #4caf50;
+            background: #4caf50;
+            box-shadow: 0 0 8px #4caf50;
         }
+
         .turn-indicator.ai-active {
-            background: #2196f3; box-shadow: 0 0 8px #2196f3;
+            background: #2196f3;
+            box-shadow: 0 0 8px #2196f3;
         }
+
         .board-container {
-            position: relative; width: 100%; margin: 0 auto;
+            position: relative;
+            width: 100%;
+            margin: 0 auto;
         }
+
         .board-container::before {
-            content: ""; display: block; padding-top: 100%;
+            content: "";
+            display: block;
+            padding-top: 100%;
         }
+
         .chess-board {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: 3px solid #8b7355; border-radius: 6px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 3px solid #8b7355;
+            border-radius: 6px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            display: flex; flex-wrap: wrap;
+            display: flex;
+            flex-wrap: wrap;
         }
+
         .square {
-            width: 12.5%; height: 12.5%; display: flex;
-            align-items: center; justify-content: center; cursor: pointer;
-            transition: all 0.2s ease; position: relative;
+            width: 12.5%;
+            height: 12.5%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
             font-size: clamp(20px, 5vw, 35px);
         }
-        .square:hover { background: rgba(255, 255, 0, 0.3) !important; }
-        .white { background: #f0d9b5; }
-        .black { background: #b58863; }
-        .selected { background: rgba(144, 238, 144, 0.6) !important; }
-        .last-move { background: rgba(255, 255, 0, 0.3) !important; }
+
+        .square:hover {
+            background: rgba(255, 255, 0, 0.3) !important;
+        }
+
+        .white {
+            background: #f0d9b5;
+        }
+
+        .black {
+            background: #b58863;
+        }
+
+        .selected {
+            background: rgba(144, 238, 144, 0.6) !important;
+        }
+
+        .last-move {
+            background: rgba(255, 255, 0, 0.3) !important;
+        }
+
         .valid-move::after {
-            content: ""; position: absolute; width: 20%; height: 20%;
-            background: rgba(0, 128, 0, 0.4); border-radius: 50%;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            content: "";
+            position: absolute;
+            width: 20%;
+            height: 20%;
+            background: rgba(0, 128, 0, 0.4);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
+
         .capture-move::before {
-            content: ""; position: absolute; width: 80%; height: 80%;
-            border: 3px solid rgba(255, 0, 0, 0.4); border-radius: 50%;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            content: "";
+            position: absolute;
+            width: 80%;
+            height: 80%;
+            border: 3px solid rgba(255, 0, 0, 0.4);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
+
         .controls {
-            margin-top: 15px; display: flex; gap: 6px;
-            justify-content: center; flex-wrap: wrap;
+            margin-top: 15px;
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
+
         button, select {
-            padding: 10px 14px; border: none; border-radius: 6px;
-            background: #5d4037; color: white; cursor: pointer;
-            font-size: clamp(0.8em, 2vw, 0.9em); transition: all 0.3s ease;
-            display: flex; align-items: center; gap: 4px; flex: 1;
-            min-width: 0; justify-content: center;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 6px;
+            background: #5d4037;
+            color: white;
+            cursor: pointer;
+            font-size: clamp(0.8em, 2vw, 0.9em);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+            justify-content: center;
         }
-        button:hover { background: #3e2723; transform: translateY(-2px); }
-        select { background: #8d6e63; min-width: 80px; }
-        .hint-btn { background: #ff9800; }
-        .hint-btn:hover { background: #f57c00; }
-        .analysis-panel { display: flex; flex-direction: column; gap: 15px; }
+
+        button:hover {
+            background: #3e2723;
+            transform: translateY(-2px);
+        }
+
+        select {
+            background: #8d6e63;
+            min-width: 80px;
+        }
+
+        .hint-btn {
+            background: #ff9800;
+        }
+
+        .hint-btn:hover {
+            background: #f57c00;
+        }
+
+        .analysis-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
         .move-history, .move-analysis {
-            background: rgba(255, 255, 255, 0.95); padding: 15px;
-            border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
+
         h3 {
-            color: #5d4037; margin-bottom: 12px; font-weight: 400;
-            border-bottom: 2px solid #d7ccc8; padding-bottom: 6px;
-            display: flex; align-items: center; gap: 6px;
+            color: #5d4037;
+            margin-bottom: 12px;
+            font-weight: 400;
+            border-bottom: 2px solid #d7ccc8;
+            padding-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-size: clamp(1em, 2.5vw, 1.2em);
         }
+
         .move-list {
-            max-height: 120px; overflow-y: auto; font-family: 'Courier New', monospace;
-            background: #fafafa; border-radius: 6px; padding: 8px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            background: #fafafa;
+            border-radius: 6px;
+            padding: 8px;
             font-size: clamp(0.8em, 2vw, 0.9em);
         }
+
         .move-item {
-            padding: 6px 10px; margin: 3px 0; border-radius: 4px;
-            background: #f5f5f5; border-left: 4px solid #ccc;
+            padding: 6px 10px;
+            margin: 3px 0;
+            border-radius: 4px;
+            background: #f5f5f5;
+            border-left: 4px solid #ccc;
         }
+
         .move-item.brilliant { border-left-color: #ffd700; background: #fffacd; }
         .move-item.best { border-left-color: #4caf50; background: #e8f5e8; }
         .move-item.good { border-left-color: #2196f3; background: #e3f2fd; }
         .move-item.inaccuracy { border-left-color: #ff9800; background: #fff3e0; }
         .move-item.mistake { border-left-color: #ff5722; background: #ffe0b2; }
         .move-item.blunder { border-left-color: #f44336; background: #ffebee; }
-        .analysis-sections { display: flex; flex-direction: column; gap: 15px; }
-        .analysis-section {
-            padding: 15px; border-radius: 8px; margin: 10px 0;
-            font-size: 0.9em; line-height: 1.5;
+
+        .analysis-text {
+            font-size: 0.9em;
+            line-height: 1.6;
         }
-        .analysis-section.ai {
-            border-left: 5px solid #2196F3; background: #e3f2fd;
+
+        .analysis-text .ai-analysis,
+        .analysis-text .player-analysis {
+            margin: 20px 0;
+            padding: 0;
         }
-        .analysis-section.player {
-            border-left: 5px solid #4CAF50; background: #e8f5e9;
+
+        .analysis-text .move-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 8px;
         }
-        .move-header {
-            font-weight: bold; font-size: 1.1em; margin-bottom: 8px; color: #333;
+
+        .analysis-text .move-evaluation {
+            font-weight: bold;
+            margin: 10px 0;
+            display: block;
         }
-        .move-evaluation {
-            font-weight: bold; margin: 8px 0; padding: 5px 10px;
-            border-radius: 4px; display: inline-block; color: white;
+
+        .analysis-text .strategic-points {
+            margin: 10px 0;
+            padding-left: 20px;
         }
-        .evaluation-best { background: #4CAF50; }
-        .evaluation-excellent { background: #2196F3; }
-        .evaluation-good { background: #8BC34A; }
-        .evaluation-inaccuracy { background: #FFC107; color: black; }
-        .evaluation-mistake { background: #FF9800; }
-        .evaluation-blunder { background: #f44336; }
-        .strategic-points { margin: 10px 0; padding-left: 15px; }
-        .strategic-points li { margin: 5px 0; }
-        .best-continuation, .better-move {
-            margin-top: 10px; padding: 8px 12px; background: rgba(0,0,0,0.05);
-            border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.9em;
+
+        .analysis-text .best-continuation {
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
         }
+
+        .analysis-text .better-move {
+            margin-top: 8px;
+            padding: 6px 10px;
+            background: #fff3cd;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        .evaluation-best { color: #4CAF50; }
+        .evaluation-excellent { color: #2196F3; }
+        .evaluation-good { color: #8BC34A; }
+        .evaluation-inaccuracy { color: #FFC107; }
+        .evaluation-mistake { color: #FF9800; }
+        .evaluation-blunder { color: #f44336; }
+
         .status-message {
-            margin-top: 8px; padding: 8px; border-radius: 4px;
-            text-align: center; font-weight: bold;
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
             font-size: clamp(0.8em, 2vw, 0.9em);
         }
-        .status-check { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-        .status-mate { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .status-check {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status-mate {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
         .analysis-placeholder {
-            text-align: center; color: #666; font-style: italic; padding: 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
         }
-        .hint-move { background: rgba(255, 255, 0, 0.5) !important; }
+
+        .hint-move {
+            background: rgba(255, 255, 0, 0.5) !important;
+        }
+
         .promotion-modal {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.3);
-            z-index: 1000; justify-content: center; align-items: center;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
         }
+
         .promotion-content {
-            background: white; padding: 20px; border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4); min-width: 320px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            min-width: 320px;
         }
+
         .promotion-options {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 20px 0;
         }
+
         .promotion-btn {
-            background: #4CAF50; color: white; font-size: 18px; font-weight: bold;
-            border: 3px solid #388E3C; border-radius: 8px; padding: 20px 10px;
-            cursor: pointer; width: 100%; height: 70px; display: flex;
-            align-items: center; justify-content: center; line-height: 1.2;
+            background: #4CAF50;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border: 3px solid #388E3C;
+            border-radius: 8px;
+            padding: 20px 10px;
+            cursor: pointer;
+            width: 100%;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
             transition: all 0.3s ease;
         }
-        .promotion-btn:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        .promotion-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
         .promotion-btn.rook { background: #2196F3; border-color: #1976D2; }
         .promotion-btn.bishop { background: #FF9800; border-color: #F57C00; }
         .promotion-btn.knight { background: #9C27B0; border-color: #7B1FA2; }
@@ -246,7 +476,7 @@
             <div class="analysis-panel">
                 <div class="move-analysis">
                     <h3><i class="fas fa-chart-line"></i> Move Analysis</h3>
-                    <div id="currentAnalysis" class="analysis-sections">
+                    <div id="currentAnalysis" class="analysis-text">
                         <div class="analysis-placeholder">
                             Make your first move to start analysis...
                         </div>
@@ -276,15 +506,8 @@
         </div>
     </div>
 
-    <!-- MULTIPLE FALLBACKS FOR CHESS.JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
-        // FALLBACK: If chess.js doesn't load, create basic game logic
-        if (typeof Chess === 'undefined') {
-            console.log('Chess.js not loaded, using fallback...');
-            // Simple fallback chess logic would go here
-        }
-
         const pieces = {
             'wp': '♙', 'wn': '♘', 'wb': '♗', 'wr': '♖', 'wq': '♕', 'wk': '♔',
             'bp': '♟', 'bn': '♞', 'bb': '♝', 'br': '♜', 'bq': '♛', 'bk': '♚'
@@ -299,6 +522,33 @@
         let lastAiMove = null;
         let lastMoveSquares = { from: null, to: null };
         let pendingPromotion = null;
+
+        // Save game state
+        window.addEventListener('beforeunload', function() {
+            if (game && game.fen) {
+                localStorage.setItem('chessGameState', game.fen());
+                localStorage.setItem('chessBoardFlipped', boardFlipped);
+                localStorage.setItem('chessMoveHistory', JSON.stringify(game.history()));
+            }
+        });
+
+        // Load game state
+        function loadGameState() {
+            const savedState = localStorage.getItem('chessGameState');
+            const savedFlipped = localStorage.getItem('chessBoardFlipped');
+            
+            if (savedState) {
+                try {
+                    game.load(savedState);
+                    boardFlipped = savedFlipped === 'true';
+                    createBoard();
+                    updateMoveHistory();
+                    document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Game resumed - continue playing</div>';
+                } catch (e) {
+                    console.log('No saved game found, starting fresh');
+                }
+            }
+        }
 
         function updateTurnIndicator() {
             const playerIndicator = document.getElementById('playerTurnIndicator');
@@ -518,7 +768,7 @@
         function analyzeAiMove(move) {
             const analysis = getAIAnalysis(move);
             const analysisHTML = `
-                <div class="analysis-section ai">
+                <div class="ai-analysis">
                     <div class="move-header">AI Move Analysis</div>
                     <div class="move-evaluation evaluation-${analysis.quality}">
                         ${move.san} - ${analysis.rating} ${analysis.score}
@@ -537,7 +787,7 @@
         function analyzePlayerMove(move) {
             const analysis = getPlayerAnalysis(move);
             const analysisHTML = `
-                <div class="analysis-section player">
+                <div class="player-analysis">
                     <div class="move-header">Tohid Move Analysis</div>
                     <div class="move-evaluation evaluation-${analysis.quality}">
                         ${move.san} - ${analysis.rating} ${analysis.score}
@@ -696,7 +946,7 @@
                 analysisContainer.innerHTML = '';
             }
             
-            const oldAnalysis = analysisContainer.querySelector(isAi ? '.analysis-section.ai' : '.analysis-section.player');
+            const oldAnalysis = analysisContainer.querySelector(isAi ? '.ai-analysis' : '.player-analysis');
             if (oldAnalysis) {
                 oldAnalysis.remove();
             }
@@ -790,65 +1040,64 @@
             createBoard();
         }
 
-        // BULLETPROOF INITIALIZATION
+        // Initialize game
         function initializeGame() {
             try {
+                loadGameState();
                 createBoard();
-                console.log('Chess board initialized successfully!');
+                
+                document.getElementById('restartBtn').addEventListener('click', function() {
+                    game = new Chess();
+                    selectedSquare = null;
+                    validMoves = [];
+                    boardFlipped = false;
+                    hintActive = false;
+                    lastPlayerMove = null;
+                    lastAiMove = null;
+                    lastMoveSquares = { from: null, to: null };
+                    pendingPromotion = null;
+                    createBoard();
+                    document.getElementById('moveList').innerHTML = '<div class="move-item">Game started - White\'s turn</div>';
+                    document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Make your first move to start analysis...</div>';
+                    document.getElementById('statusMessage').innerHTML = '';
+                    localStorage.removeItem('chessGameState');
+                });
+                
+                document.getElementById('undoBtn').addEventListener('click', function() {
+                    if (game.history().length >= 2) {
+                        game.undo();
+                        game.undo();
+                    }
+                    selectedSquare = null;
+                    validMoves = [];
+                    hintActive = false;
+                    lastPlayerMove = null;
+                    lastAiMove = null;
+                    lastMoveSquares = { from: null, to: null };
+                    pendingPromotion = null;
+                    createBoard();
+                    updateMoveHistory();
+                    document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Game reset - make a move</div>';
+                });
+                
+                document.getElementById('flipBtn').addEventListener('click', flipBoard);
+                document.getElementById('hintBtn').addEventListener('click', giveHint);
+                
+                document.getElementById('levelSelect').addEventListener('change', function() {
+                    document.getElementById('ai-level').textContent = `(${this.options[this.selectedIndex].text})`;
+                });
+                
             } catch (error) {
-                console.error('Error initializing chess board:', error);
-                document.getElementById('chessBoard').innerHTML = 
-                    'Chess board failed to load. Please refresh the page.';
+                console.error('Error initializing game:', error);
             }
         }
 
-        // Wait for everything to load
+        // Start the game
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initializeGame);
         } else {
             initializeGame();
         }
-
-        // Event listeners
-        document.getElementById('restartBtn').addEventListener('click', function() {
-            game = new Chess();
-            selectedSquare = null;
-            validMoves = [];
-            boardFlipped = false;
-            hintActive = false;
-            lastPlayerMove = null;
-            lastAiMove = null;
-            lastMoveSquares = { from: null, to: null };
-            pendingPromotion = null;
-            createBoard();
-            document.getElementById('moveList').innerHTML = '<div class="move-item">Game started - White\'s turn</div>';
-            document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Make your first move to start analysis...</div>';
-            document.getElementById('statusMessage').innerHTML = '';
-        });
-        
-        document.getElementById('undoBtn').addEventListener('click', function() {
-            if (game.history().length >= 2) {
-                game.undo();
-                game.undo();
-            }
-            selectedSquare = null;
-            validMoves = [];
-            hintActive = false;
-            lastPlayerMove = null;
-            lastAiMove = null;
-            lastMoveSquares = { from: null, to: null };
-            pendingPromotion = null;
-            createBoard();
-            updateMoveHistory();
-            document.getElementById('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Game reset - make a move</div>';
-        });
-        
-        document.getElementById('flipBtn').addEventListener('click', flipBoard);
-        document.getElementById('hintBtn').addEventListener('click', giveHint);
-        
-        document.getElementById('levelSelect').addEventListener('change', function() {
-            document.getElementById('ai-level').textContent = `(${this.options[this.selectedIndex].text})`;
-        });
 
         function updateMoveHistory() {
             const moveList = document.getElementById('moveList');
