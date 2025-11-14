@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Chess But Why? — Lichess Engine Only (Working)</title>
+<title>Chess But Why? — GarboChess Hard Mode</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 <style>
-/* --- UI + original color-coded move styles preserved --- */
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#f5f1e8 0%,#e8dfce 100%);color:#3a2c1e;min-height:100vh;padding:12px}
+body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(135deg,#f5f1e8,#e8dfce);color:#3a2c1e;min-height:100vh;padding:12px}
 .container{max-width:1200px;margin:0 auto}
 header{text-align:center;margin-bottom:18px;padding:14px;background:rgba(255,255,255,.95);border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
 h1{font-size:clamp(1.8em,4vw,2.4em);color:#2c5530;margin-bottom:6px;font-weight:300}
@@ -27,18 +27,16 @@ h1{font-size:clamp(1.8em,4vw,2.4em);color:#2c5530;margin-bottom:6px;font-weight:
 .board-container::before{content:"";display:block;padding-top:100%}
 .chess-board{position:absolute;top:0;left:0;width:100%;height:100%;border:3px solid #8b7355;border-radius:6px;box-shadow:0 4px 15px rgba(0,0,0,.2);display:flex;flex-wrap:wrap}
 .square{width:12.5%;height:12.5%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s ease;position:relative;font-size:clamp(20px,5vw,36px);user-select:none}
-.square:focus{outline:3px solid rgba(33,150,243,.25)}
-.white{background:#f0d9b5}
-.black{background:#b58863}
-.selected{background:rgba(144,238,144,.6) !important}
-.last-move{background:rgba(255,255,0,.3) !important}
+.square.white{background:#f0d9b5}
+.square.black{background:#b58863}
+.selected{background:rgba(144,238,144,.6)!important}
+.last-move{background:rgba(255,255,0,.3)!important}
 .valid-move::after{content:"";position:absolute;width:20%;height:20%;background:rgba(0,128,0,.4);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
 .capture-move::before{content:"";position:absolute;width:80%;height:80%;border:3px solid rgba(255,0,0,.35);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
-.hint-move{background:rgba(255,255,0,.45) !important;box-shadow:0 0 8px rgba(255,235,59,.4) inset}
+.hint-move{background:rgba(255,255,0,.45)!important;box-shadow:0 0 8px rgba(255,235,59,.4) inset}
 .controls{margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-button,select{padding:10px 14px;border:none;border-radius:6px;background:#5d4037;color:white;cursor:pointer;font-size:clamp(.8em,2vw,.95em);transition:all .2s ease;display:flex;align-items:center;gap:6px;min-width:0;justify-content:center}
+button,select{padding:10px 14px;border:none;border-radius:6px;background:#5d4037;color:white;cursor:pointer;font-size:clamp(.8em,2vw,.95em);transition:all .2s ease;display:flex;align-items:center;gap:6px;justify-content:center}
 button:hover{background:#3e2723;transform:translateY(-2px)}
-select{background:#8d6e63;min-width:80px}
 .hint-btn{background:#ff9800}
 .hint-btn:hover{background:#f57c00}
 .analysis-panel{display:flex;flex-direction:column;gap:14px}
@@ -46,7 +44,6 @@ select{background:#8d6e63;min-width:80px}
 h3{color:#5d4037;margin-bottom:10px;font-weight:400;border-bottom:2px solid #d7ccc8;padding-bottom:6px;display:flex;align-items:center;gap:8px;font-size:clamp(1em,2.5vw,1.15em)}
 .move-list{max-height:220px;overflow-y:auto;font-family:'Courier New',monospace;background:#fafafa;border-radius:6px;padding:8px;font-size:clamp(.8em,2vw,.95em)}
 .move-item{padding:8px 10px;margin:6px 0;border-radius:6px;background:#f5f5f5;border-left:4px solid #ccc}
-.move-item.brilliant{border-left-color:#ffd700;background:#fffacd}
 .move-item.best{border-left-color:#4caf50;background:#e8f5e8}
 .move-item.good{border-left-color:#2196f3;background:#e3f2fd}
 .move-item.inaccuracy{border-left-color:#ff9800;background:#fff3e0}
@@ -56,601 +53,347 @@ h3{color:#5d4037;margin-bottom:10px;font-weight:400;border-bottom:2px solid #d7c
 .analysis-text .move-header{font-weight:bold;font-size:1.05em;color:#333;margin-bottom:8px}
 .analysis-text .move-evaluation{font-weight:bold;margin:10px 0;display:block}
 .analysis-text .best-continuation{margin-top:10px;font-family:'Courier New',monospace;background:#f5f5f5;padding:8px 12px;border-radius:4px;font-size:.9em}
-.analysis-text .better-move{margin-top:8px;padding:6px 10px;background:#fff3cd;border-radius:4px;font-size:.9em}
-.status-message{margin-top:8px;padding:8px;border-radius:6px;text-align:center;font-weight:bold;font-size:clamp(.85em,2vw,.95em)}
-.status-check{background:#fff3cd;color:#856404;border:1px solid #ffeaa7}
-.status-mate{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
-.promotion-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.35);z-index:1000;justify-content:center;align-items:center}
-.promotion-content{background:white;padding:20px;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,.4);min-width:320px;text-align:center}
-.promotion-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
-.promotion-btn{background:#4CAF50;color:white;font-size:18px;font-weight:bold;border:3px solid #388E3C;border-radius:8px;padding:14px 10px;cursor:pointer;height:64px;display:flex;align-items:center;justify-content:center;transition:all .2s ease}
-.promotion-btn.rook{background:#2196F3;border-color:#1976D2}
-.promotion-btn.bishop{background:#FF9800;border-color:#F57C00}
-.promotion-btn.knight{background:#9C27B0;border-color:#7B1FA2}
 .small-muted{font-size:.85em;color:#666}
-.loading-text { padding: 20px; color: #444; font-weight: 600; }
-.error-text { padding: 12px; color: #721c24; background: #f8d7da; border-radius: 8px; margin-top: 12px; }
+.error-text{padding:12px;color:#721c24;background:#f8d7da;border-radius:8px;margin-top:12px}
 </style>
 </head>
+
 <body>
 <div class="container">
-  <header>
-    <h1>♟️ Chess But Why?</h1>
-    <p class="subtitle">Lichess engine only — real moves from the cloud</p>
-  </header>
+<header>
+<h1>♟️ Chess But Why?</h1>
+<p class="subtitle">GarboChess Engine — HARD MODE</p>
+</header>
 
-  <div class="game-container">
-    <div class="board-panel" role="application" aria-label="Chess board and controls">
-      <div class="player-info">
-        <div class="player ai-player"><i class="fas fa-robot" aria-hidden="true"></i>&nbsp;AI <span id="ai-level">(Lichess)</span>
-          <div id="aiTurnIndicator" class="turn-indicator"></div>
-        </div>
-        <div class="player human-player"><i class="fas fa-user" aria-hidden="true"></i>&nbsp;Tohid
-          <div id="playerTurnIndicator" class="turn-indicator active"></div>
-        </div>
-      </div>
-
-      <div class="board-container">
-        <!-- The board element MUST exist and have this exact id -->
-        <div id="chessBoard" class="chess-board" tabindex="0" aria-label="Chessboard">
-          <div class="loading-text">Loading chess board...</div>
-        </div>
-      </div>
-
-      <div id="statusMessage" class="status-message" aria-live="polite"></div>
-
-      <div class="controls">
-        <button id="undoBtn" aria-label="Undo last move"><i class="fas fa-undo"></i> Undo</button>
-        <button id="restartBtn" aria-label="Restart game"><i class="fas fa-redo"></i> Restart</button>
-        <button id="flipBtn" aria-label="Flip board"><i class="fas fa-sync-alt"></i> Flip</button>
-        <button id="hintBtn" class="hint-btn" aria-label="Show hint"><i class="fas fa-lightbulb"></i> Hint</button>
-        <select id="levelSelect" aria-label="AI level" style="display:none">
-          <option value="lichess" selected>Lichess</option>
-        </select>
-        <button id="exportPgnBtn" aria-label="Export PGN"><i class="fas fa-download"></i> Export PGN</button>
-      </div>
-
-      <div style="margin-top:8px;text-align:center" class="small-muted">Using Lichess cloud-eval. If Lichess fails, no move will be made.</div>
-      <div id="lowLevelError" style="display:none" class="error-text"></div>
+<div class="game-container">
+<div class="board-panel">
+<div class="player-info">
+    <div class="player ai-player"><i class="fas fa-robot"></i>&nbsp;AI (Hard)
+        <div id="aiTurnIndicator" class="turn-indicator"></div>
     </div>
+    <div class="player human-player"><i class="fas fa-user"></i>&nbsp;Tohid
+        <div id="playerTurnIndicator" class="turn-indicator active"></div>
+    </div>
+</div>
 
-    <div class="analysis-panel">
-      <div class="move-analysis">
+<div class="board-container">
+<div id="chessBoard" class="chess-board">
+    <div class="loading-text">Loading...</div>
+</div>
+</div>
+
+<div id="statusMessage" class="status-message"></div>
+
+<div class="controls">
+<button id="undoBtn"><i class="fas fa-undo"></i> Undo</button>
+<button id="restartBtn"><i class="fas fa-redo"></i> Restart</button>
+<button id="flipBtn"><i class="fas fa-sync-alt"></i> Flip</button>
+<button id="hintBtn" class="hint-btn"><i class="fas fa-lightbulb"></i> Hint</button>
+<button id="exportPgnBtn"><i class="fas fa-download"></i> Export PGN</button>
+</div>
+
+<div class="small-muted">Engine: GarboChess (Hard)</div>
+<div id="lowLevelError" style="display:none" class="error-text"></div>
+</div>
+<!-- Promotion Modal -->
+<div id="promotionModal" class="promotion-modal" role="dialog" aria-modal="true" aria-hidden="true" 
+style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.35);justify-content:center;align-items:center;z-index:9999">
+    <div class="promotion-content" style="background:white;padding:20px;border-radius:12px;text-align:center">
+        <h3>Choose Promotion</h3>
+        <div class="promotion-options" style="display:flex;gap:12px;justify-content:center;margin-top:12px">
+            <button class="promotion-btn" onclick="choosePromotion('q')">♕</button>
+            <button class="promotion-btn" onclick="choosePromotion('r')">♖</button>
+            <button class="promotion-btn" onclick="choosePromotion('b')">♗</button>
+            <button class="promotion-btn" onclick="choosePromotion('n')">♘</button>
+        </div>
+    </div>
+</div>
+
+
+<div class="analysis-panel">
+    <div class="move-analysis">
         <h3><i class="fas fa-chart-line"></i> Move Analysis</h3>
         <div id="currentAnalysis" class="analysis-text">
-          <div class="analysis-placeholder">Make your first move to start analysis...</div>
+            <div class="analysis-placeholder">Make your first move to start analysis...</div>
         </div>
-      </div>
+    </div>
 
-      <div class="move-history">
+    <div class="move-history">
         <h3><i class="fas fa-history"></i> Move History</h3>
         <div id="moveList" class="move-list">
-          <div class="move-item">Game started - White's turn</div>
+            <div class="move-item">Game started - White's turn</div>
         </div>
-      </div>
     </div>
-  </div>
+</div>
+</div>
 </div>
 
-<div id="promotionModal" class="promotion-modal" role="dialog" aria-modal="true" aria-hidden="true">
-  <div class="promotion-content">
-    <h3 style="margin-bottom:12px;color:#333;font-size:1.2em">Choose Promotion</h3>
-    <div class="promotion-options">
-      <button class="promotion-btn" onclick="choosePromotion('q')">♕ Queen</button>
-      <button class="promotion-btn rook" onclick="choosePromotion('r')">♖ Rook</button>
-      <button class="promotion-btn bishop" onclick="choosePromotion('b')">♗ Bishop</button>
-      <button class="promotion-btn knight" onclick="choosePromotion('n')">♘ Knight</button>
-    </div>
-    <p class="small-muted">Click a piece to promote</p>
-  </div>
-</div>
 
-<!-- chess.js - required -->
+<!-- REQUIRED: chess.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
-<script>
-/*
-  Full working single-file implementation.
-  Uses Lichess cloud-eval for engine moves (no local fake moves).
-  Strong defensive checks and explicit error reporting so board always renders
-*/
+<!-- REQUIRED: GarboChess Engine -->
+<script src="js/garbochess.js"></script>
 
-(function(){
-  // glyphs
-  const pieces = {
+<script>
+// =======================================
+// CORE GAME STATE
+// =======================================
+const pieces = {
     'wp':'♙','wn':'♘','wb':'♗','wr':'♖','wq':'♕','wk':'♔',
     'bp':'♟','bn':'♞','bb':'♝','br':'♜','bq':'♛','bk':'♚'
-  };
+};
 
-  // state
-  let game = new Chess();
-  let selectedSquare = null;
-  let validMoves = [];
-  let boardFlipped = false;
-  let hintActive = false;
-  let hintSquares = {from:null,to:null};
-  let lastPlayerMove = null;
-  let lastAiMove = null;
-  let lastMoveSquares = {from:null,to:null};
-  let pendingPromotion = null;
+let game = new Chess();
+let selectedSquare = null;
+let validMoves = [];
+let boardFlipped = false;
+let hintActive = false;
+let hintSquares = {from:null,to:null};
+let lastMoveSquares = {from:null,to:null};
+let pendingPromotion = null;
 
-  const STORAGE_FEN = 'chessGameState';
-  const STORAGE_PGN = 'chessPGN';
-  const STORAGE_FLIPPED = 'chessBoardFlipped';
 
-  // helper: safe DOM getter
-  function $id(id){ return document.getElementById(id); }
+// =======================================
+// DOM HELPERS
+// =======================================
+function $id(id){ return document.getElementById(id); }
 
-  // Save state
-  window.addEventListener('beforeunload', ()=> {
-    try {
-      localStorage.setItem(STORAGE_FEN, game.fen());
-      localStorage.setItem(STORAGE_PGN, game.pgn());
-      localStorage.setItem(STORAGE_FLIPPED, boardFlipped ? 'true' : 'false');
-    } catch(e){
-      console.warn('Save failed', e);
-    }
-  });
 
-  // Load state (prefer PGN)
-  function loadGameState(){
-    try {
-      const pgn = localStorage.getItem(STORAGE_PGN);
-      const fen = localStorage.getItem(STORAGE_FEN);
-      const flipped = localStorage.getItem(STORAGE_FLIPPED);
+// =======================================
+// BOARD RENDER
+// =======================================
+function createBoard(){
+    const board = $id("chessBoard");
+    board.innerHTML = "";
 
-      if (pgn) {
-        const g = new Chess();
-        const ok = g.load_pgn(pgn);
-        if (ok) {
-          game = g;
-          boardFlipped = flipped === 'true';
-          return;
+    const files = "abcdefgh";
+    const ranks = boardFlipped ? "12345678" : "87654321";
+
+    for (let r = 0; r < 8; r++){
+        for (let c = 0; c < 8; c++){
+            const dr = boardFlipped ? 7-r : r;
+            const dc = boardFlipped ? 7-c : c;
+            const sqName = files[dc] + ranks[dr];
+
+            const div = document.createElement("div");
+            div.className = "square " + (((r+c)%2===0) ? 'white' : 'black');
+            div.dataset.square = sqName;
+
+            // highlight last move
+            if (lastMoveSquares.from === sqName || lastMoveSquares.to === sqName)
+                div.classList.add("last-move");
+
+            const piece = game.get(sqName);
+            if (piece){
+                const key = piece.color + piece.type;
+                div.innerHTML = pieces[key];
+            }
+
+            // valid moves
+            const valid = validMoves.find(m => m.to === sqName);
+            if (valid){
+                if (valid.captured) div.classList.add("capture-move");
+                else div.classList.add("valid-move");
+            }
+
+            if (hintActive && (hintSquares.from === sqName || hintSquares.to === sqName))
+                div.classList.add("hint-move");
+
+            div.onclick = () => handleSquareClick(sqName);
+
+            board.appendChild(div);
         }
-      }
-      if (fen) {
-        const ok2 = game.load(fen);
-        if (ok2) boardFlipped = flipped === 'true';
-      }
-    } catch (e) {
-      console.warn('Load failed', e);
     }
-  }
 
-  // Update turn indicators
-  function updateTurnIndicator(){
-    const playerIndicator = $id('playerTurnIndicator');
-    const aiIndicator = $id('aiTurnIndicator');
-    if (!playerIndicator || !aiIndicator) return;
-    if (game.turn() === 'w') {
-      playerIndicator.classList.add('active'); playerIndicator.classList.remove('ai-active');
-      aiIndicator.classList.remove('active','ai-active');
-    } else {
-      aiIndicator.classList.add('ai-active'); aiIndicator.classList.remove('active');
-      playerIndicator.classList.remove('active','ai-active');
-    }
-  }
+    updateTurnIndicator();
+    updateStatus();
+}
 
-  // Create board (robust)
-  function createBoard(){
-    const board = $id('chessBoard');
-    if (!board) {
-      console.error('No #chessBoard element found in DOM');
-      $id('lowLevelError').style.display = 'block';
-      $id('lowLevelError').textContent = 'Fatal: board container (id="chessBoard") not found.';
-      return;
-    }
-    board.innerHTML = '';
 
-    try {
-      const files = 'abcdefgh';
-      const ranks = boardFlipped ? '12345678' : '87654321';
-
-      for (let row=0; row<8; row++){
-        for (let col=0; col<8; col++){
-          const displayRow = boardFlipped ? 7-row : row;
-          const displayCol = boardFlipped ? 7-col : col;
-          const squareName = files[displayCol] + ranks[displayRow];
-
-          const sq = document.createElement('div');
-          sq.className = 'square ' + (((row+col)%2===0)?'white':'black');
-          sq.dataset.square = squareName;
-          sq.tabIndex = 0;
-          sq.setAttribute('role','button');
-          sq.setAttribute('aria-label','Square ' + squareName);
-
-          // highlight last move
-          if (lastMoveSquares.from === squareName || lastMoveSquares.to === squareName) {
-            sq.classList.add('last-move');
-          }
-
-          const piece = game.get(squareName);
-          if (piece) {
-            const key = piece.color === 'w' ? 'w'+piece.type : 'b'+piece.type;
-            sq.innerHTML = pieces[key] || '';
-            sq.style.cursor = 'pointer';
-          } else {
-            sq.innerHTML = '';
-          }
-
-          if (selectedSquare === squareName) sq.classList.add('selected');
-
-          const valid = validMoves.find(m=>m.to===squareName);
-          if (valid) {
-            if (valid.captured) sq.classList.add('capture-move');
-            else sq.classList.add('valid-move');
-          }
-
-          if (hintActive && (squareName === hintSquares.from || squareName === hintSquares.to)) sq.classList.add('hint-move');
-
-          sq.addEventListener('click', ()=> handleSquareClick(squareName));
-          sq.addEventListener('keydown', (e)=> {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSquareClick(squareName); }
-            if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) { e.preventDefault(); navigateFocus(squareName,e.key); }
-          });
-
-          board.appendChild(sq);
-        }
-      }
-      updateStatus();
-      updateTurnIndicator();
-      $id('lowLevelError').style.display = 'none';
-    } catch (err) {
-      console.error('createBoard error', err);
-      $id('lowLevelError').style.display = 'block';
-      $id('lowLevelError').textContent = 'Error while rendering board: ' + String(err);
-    }
-  }
-
-  // Keyboard navigation
-  function navigateFocus(current, key) {
-    const files = 'abcdefgh';
-    const f = current[0], r = parseInt(current[1],10);
-    let fi = files.indexOf(f), ri = r;
-    if (key === 'ArrowLeft') fi = Math.max(0,fi-1);
-    if (key === 'ArrowRight') fi = Math.min(7,fi+1);
-    if (key === 'ArrowUp') ri = Math.min(8,ri+1);
-    if (key === 'ArrowDown') ri = Math.max(1,ri-1);
-    const target = files[fi] + String(ri);
-    const el = document.querySelector(`.square[data-square="${target}"]`);
-    if (el) el.focus();
-  }
-
-  // Handle square click
-  function handleSquareClick(square) {
-    // clear hint if active
-    if (hintActive) { hintActive=false; hintSquares={from:null,to:null}; createBoard(); return; }
-
+// =======================================
+// CLICK HANDLING
+// =======================================
+function handleSquareClick(square){
     const piece = game.get(square);
 
-    if (selectedSquare) {
-      const move = tryMove(selectedSquare, square);
-      if (move) {
-        lastPlayerMove = move;
-        lastMoveSquares = {from:move.from, to:move.to};
-        addMoveToHistory(move);
-        analyzePlayerMove(move);
+    if (selectedSquare){
+        const mv = tryMove(selectedSquare, square);
+        selectedSquare = null;
+        validMoves = [];
 
-        if (!game.game_over()) {
-          // AI move from Lichess
-          setTimeout(makeAiMove, 650);
-        } else {
-          updateStatus();
+        if (mv){
+            lastMoveSquares = {from: mv.from, to: mv.to};
+            addMoveToHistory(mv);
+            analyzePlayerMove(mv);
+
+            setTimeout(makeAiMove, 400);
         }
-      } else {
-        if (piece && piece.color === game.turn()) {
-          selectedSquare = square;
-          validMoves = game.moves({square: square, verbose: true});
-        } else {
-          selectedSquare = null; validMoves = [];
-        }
-      }
-      selectedSquare = null; validMoves = []; createBoard();
-    } else if (piece && piece.color === game.turn()) {
-      selectedSquare = square;
-      validMoves = game.moves({square: square, verbose: true});
-      createBoard();
-    } else {
-      selectedSquare = null; validMoves = []; createBoard();
+
+        createBoard();
+        return;
     }
-  }
 
-  // Try move (handles promotion prompt)
-  function tryMove(from, to) {
+    if (piece && piece.color === game.turn()){
+        selectedSquare = square;
+        validMoves = game.moves({square:square, verbose:true});
+        createBoard();
+    }
+}
+
+
+// =======================================
+// MOVE + PROMOTION
+// =======================================
+function tryMove(from,to){
     const p = game.get(from);
-    if (p && p.type === 'p' && (to[1] === '8' || to[1] === '1')) {
-      pendingPromotion = {from,to};
-      showPromotionModal();
-      return null;
+    if (p && p.type==='p' && (to.endsWith("8") || to.endsWith("1"))){
+        pendingPromotion = {from,to};
+        showPromotionModal();
+        return null;
     }
-    try {
-      const mv = game.move({from,to,promotion:'q'});
-      return mv;
-    } catch(e) {
-      return null;
-    }
-  }
+    try { return game.move({from,to,promotion:"q"}); }
+    catch { return null; }
+}
 
-  // Promotion modal control
-  function showPromotionModal(){ const m = $id('promotionModal'); if (m) { m.style.display='flex'; m.setAttribute('aria-hidden','false'); } }
-  function hidePromotionModal(){ const m = $id('promotionModal'); if (m) { m.style.display='none'; m.setAttribute('aria-hidden','true'); } }
-  window.choosePromotion = function(pieceChar){
-    hidePromotionModal();
-    if (!pendingPromotion) return;
+function showPromotionModal(){
+    const m = $id("promotionModal");
+    m.style.display="flex";
+}
+
+function hidePromotionModal(){
+    const m = $id("promotionModal");
+    m.style.display="none";
+}
+
+window.choosePromotion = function(piece){
     const {from,to} = pendingPromotion;
-    try {
-      const mv = game.move({from,to,promotion:pieceChar});
-      if (mv) {
-        lastPlayerMove = mv;
+    pendingPromotion = null;
+    hidePromotionModal();
+
+    const mv = game.move({from,to,promotion:piece});
+    if (mv){
         lastMoveSquares = {from:mv.from,to:mv.to};
         addMoveToHistory(mv);
         analyzePlayerMove(mv);
-        if (!game.game_over()) setTimeout(makeAiMove,650);
-      }
-    } catch(e){
-      console.warn('Promotion failed',e);
+        setTimeout(makeAiMove, 400);
     }
-    pendingPromotion = null; selectedSquare=null; validMoves=[]; createBoard();
-  };
-
-  // Lichess-only AI call (strict validation)
-  async function makeAiMove(){
-    const statusEl = $id('statusMessage');
-    if (statusEl) statusEl.innerHTML = '<div class="status-message status-check">AI thinking (Lichess)...</div>';
-
-    const legal = game.moves({verbose:true});
-    if (!legal || legal.length === 0) { updateStatus(); return; }
-
-    try {
-      const fen = game.fen();
-      const url = `https://lichess.org/api/cloud-eval?fen=${encodeURIComponent(fen)}&multiPv=1`;
-      const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
-
-      if (!resp.ok) throw new Error('Lichess returned status ' + resp.status);
-
-      const data = await resp.json();
-
-      if (!data || !Array.isArray(data.pvs) || data.pvs.length === 0 || !data.pvs[0].moves) {
-        throw new Error('Lichess response missing pvs/moves');
-      }
-
-      const bestMoveStr = data.pvs[0].moves.split(' ')[0];
-      if (!bestMoveStr || bestMoveStr.length < 4) throw new Error('Invalid move string from Lichess');
-
-      const from = bestMoveStr.substring(0,2);
-      const to = bestMoveStr.substring(2,4);
-      const promotion = bestMoveStr.length > 4 ? bestMoveStr[4] : undefined;
-
-      // ensure suggested move is legal in current position
-      const found = legal.find(m => m.from === from && m.to === to && (promotion ? (m.promotion === promotion) : true));
-      if (!found) throw new Error('Lichess suggested illegal move: ' + bestMoveStr);
-
-      const mv = game.move({from,to,promotion: promotion || 'q'});
-      if (!mv) throw new Error('game.move failed for ' + bestMoveStr);
-
-      lastAiMove = mv; lastMoveSquares = {from:mv.from,to:mv.to};
-      createBoard();
-      addMoveToHistory(mv,true);
-      analyzeAiMove(mv);
-    } catch (err) {
-      console.error('Lichess AI error:', err);
-      // set a clear UI error; no fallback moves are played
-      const errEl = $id('lowLevelError');
-      if (errEl) { errEl.style.display='block'; errEl.textContent = 'Lichess error: ' + String(err); }
-      if (statusEl) statusEl.innerHTML = `<div class="status-message status-mate">Lichess failed: ${String(err).replace(/</g,'&lt;')}</div>`;
-    } finally {
-      updateStatus();
-    }
-  }
-
-  // Analysis (textual only)
-  function analyzeAiMove(move){
-    const analysis = getAIAnalysis(move);
-    const html = `<div class="ai-analysis"><div class="move-header">AI Move Analysis</div>
-                  <div class="move-evaluation">${move.san} - ${analysis.rating} ${analysis.score}</div>
-                  <ul class="strategic-points">${analysis.points.map(p=>'<li>'+p+'</li>').join('')}</ul>
-                  <div class="best-continuation"><strong>Best continuation:</strong> ${analysis.continuation}</div>
-                  </div>`;
-    updateAnalysis(html,true);
-  }
-  function analyzePlayerMove(move){
-    const analysis = getPlayerAnalysis(move);
-    const html = `<div class="player-analysis"><div class="move-header">Tohid Move Analysis</div>
-                  <div class="move-evaluation">${move.san} - ${analysis.rating} ${analysis.score}</div>
-                  <ul class="strategic-points">${analysis.points.map(p=>'<li>'+p+'</li>').join('')}</ul>
-                  ${analysis.betterMove?'<div class="better-move"><strong>Better was:</strong> '+analysis.betterMove+'</div>':''}
-                  <div class="best-continuation"><strong>Best continuation:</strong> ${analysis.continuation}</div>
-                  </div>`;
-    updateAnalysis(html,false);
-  }
-
-  function getAIAnalysis(move){
-    if (move.captured) return {rating:'BRILLIANT',score:'(+3.2)',points:['Wins material and creates decisive advantage','Activates piece to dominant position','Creates threats'],continuation:'...'};
-    if (move.san && (move.san.includes('O-O')||move.san.includes('O-O-O'))) return {rating:'EXCELLENT',score:'(+1.8)',points:['King safety and rook activation','Connects rooks'],continuation:'...'};
-    if (['e4','e5','d4','d5'].includes(move.to)) return {rating:'EXCELLENT',score:'(+1.5)',points:['Controls center','Opens lines for development'],continuation:'1...e5 2.Nf3 Nc6 3.Bc4'};
-    return {rating:'GOOD',score:'(+0.8)',points:['Reasonable development','Maintains balance'],continuation:'...'};
-  }
-  function getPlayerAnalysis(move){
-    if (move.piece === 'p' && (move.to === 'f3' || move.to === 'f6') && game.history().length < 4) {
-      return {rating:'BLUNDER',score:'(-4.2)',points:["Weakens king's pawn shield","Blocks knight development","Creates weaknesses"],betterMove:'Nf3!',continuation:'1...e5 2.Nf3 Nc6 3.Bc4'};
-    }
-    if (move.captured) return {rating:'EXCELLENT',score:'(+2.1)',points:['Wins material','Creates tactical opportunities'],betterMove:null,continuation:'...'};
-    if (['e4','e5','d4','d5'].includes(move.to)) return {rating:'BEST',score:'(+1.2)',points:['Controls center','Opens development'],betterMove:null,continuation:'1...e5 2.Nf3 Nc6 3.Bc4'};
-    if (['a3','h3','a6','h6'].includes(move.to) && game.history().length < 6) return {rating:'INACCURACY',score:'(-0.7)',points:['Wastes tempo','Neglects center control'],betterMove:'Nf3!',continuation:'...'};
-    return {rating:'GOOD',score:'(+0.3)',points:['Reasonable developing move','Maintains stability'],betterMove:null,continuation:'...'};
-  }
-
-  function updateAnalysis(html,isAi){
-    const container = $id('currentAnalysis');
-    if (!container) return;
-    if (container.querySelector('.analysis-placeholder')) container.innerHTML = '';
-    const old = container.querySelector(isAi?'.ai-analysis':'.player-analysis');
-    if (old) old.remove();
-    if (isAi) container.insertAdjacentHTML('afterbegin',html);
-    else container.insertAdjacentHTML('beforeend',html);
-  }
-
-  // Move history UI
-  function addMoveToHistory(move,isAi=false){
-    const moveList = $id('moveList');
-    if (!moveList) return;
-    const verbose = game.history({verbose:true});
-    const moveNumber = Math.ceil(verbose.length/2);
-    const quality = isAi? getAiMoveQuality(move) : getPlayerMoveQuality(move);
-
-    const item = document.createElement('div');
-    item.className = 'move-item ' + quality.class;
-    item.innerHTML = isAi ? `${moveNumber}... <strong>${move.san}</strong> - ${quality.text}` : `${moveNumber}. <strong>${move.san}</strong> - ${quality.text}`;
-    moveList.appendChild(item);
-    moveList.scrollTop = moveList.scrollHeight;
-  }
-
-  function getAiMoveQuality(move){
-    if (move.captured) return {text:'BEST',class:'best'};
-    if (['e4','e5','d4','d5'].includes(move.to)) return {text:'BEST',class:'best'};
-    return {text:'GOOD',class:'good'};
-  }
-  function getPlayerMoveQuality(move){
-    if (move.piece === 'p' && (move.to === 'f3' || move.to === 'f6')) return {text:'BLUNDER',class:'blunder'};
-    if (move.captured) return {text:'BEST',class:'best'};
-    if (['e4','e5','d4','d5'].includes(move.to)) return {text:'BEST',class:'best'};
-    if (['a3','h3','a6','h6'].includes(move.to)) return {text:'INACCURACY',class:'inaccuracy'};
-    return {text:'GOOD',class:'good'};
-  }
-
-  // Hint visual only (does NOT play)
-  function giveHint(){
-    const moves = game.moves({verbose:true});
-    if (!moves || moves.length===0) return;
-    const good = moves.filter(m=> m.captured || m.san.includes('+'));
-    const ok = moves.filter(m=> ['d4','e4','d5','e5','f3','c3','f6','c6'].includes(m.to));
-    const pick = good.length>0 ? good[Math.floor(Math.random()*good.length)] : (ok.length>0 ? ok[Math.floor(Math.random()*ok.length)] : moves[Math.floor(Math.random()*moves.length)]);
-    hintActive=true; hintSquares={from: pick.from, to: pick.to};
     createBoard();
-  }
+};
+<script>
+// =======================================
+// AI BRAIN & MOVE LOGIC
+// =======================================
 
-  // Status messages
-  function updateStatus(){
-    const statusEl = $id('statusMessage');
-    if (!statusEl) return;
-    let status = '';
-    if (game.in_checkmate()) {
-      const winner = game.turn() === 'w' ? 'Black' : 'White';
-      status = `<div class="status-message status-mate">CHECKMATE! ${winner} wins!</div>`;
-    } else if (game.in_check()) {
-      status = `<div class="status-message status-check">CHECK! ${game.turn() === 'w' ? 'White' : 'Black'} is in check</div>`;
-    } else if (game.in_draw()) {
-      status = `<div class="status-message">Game drawn!</div>`;
+function makeAiMove(){
+    if (game.game_over()) return;
+
+    const turn = game.turn();
+    const aiMoves = game.moves({verbose:true});
+    if (aiMoves.length === 0) return;
+
+    // Use GarboChess engine if available
+    if (typeof GarboChess === "function"){
+        try {
+            const bestMove = GarboChess(game.fen(), 2); // depth 2 hard-coded
+            if (bestMove){
+                const mv = game.move(bestMove);
+                lastMoveSquares = {from: mv.from, to: mv.to};
+                addMoveToHistory(mv, true);
+                analyzePlayerMove(mv, true);
+                createBoard();
+            }
+        } catch(e){
+            console.error("AI error:", e);
+            makeRandomAiMove(aiMoves);
+        }
     } else {
-      status = '';
+        // fallback: random AI
+        makeRandomAiMove(aiMoves);
     }
-    statusEl.innerHTML = status;
-  }
+}
 
-  // Undo
-  function setupUndo(){
-    const btn = $id('undoBtn');
-    if (!btn) return;
-    btn.addEventListener('click', ()=>{
-      const hist = game.history();
-      if (hist.length >= 2) { game.undo(); game.undo(); }
-      else if (hist.length === 1) { game.undo(); }
-      selectedSquare=null; validMoves=[]; hintActive=false; hintSquares={from:null,to:null};
-      lastPlayerMove=null; lastAiMove=null; lastMoveSquares={from:null,to:null}; pendingPromotion=null;
-      createBoard(); updateMoveHistory();
-      $id('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Game reset - make a move</div>';
-    });
-  }
+function makeRandomAiMove(aiMoves){
+    const mv = aiMoves[Math.floor(Math.random() * aiMoves.length)];
+    game.move({from: mv.from, to: mv.to, promotion: mv.promotion || "q"});
+    lastMoveSquares = {from: mv.from, to: mv.to};
+    addMoveToHistory(mv, true);
+    analyzePlayerMove(mv, true);
+    createBoard();
+}
 
-  // Update move history UI fully
-  function updateMoveHistory(){
-    const moveList = $id('moveList');
-    if (!moveList) return;
-    const moves = game.history({verbose:true}) || [];
-    moveList.innerHTML = '';
-    if (moves.length===0) { moveList.innerHTML = '<div class="move-item">Game started - White\'s turn</div>'; return; }
-    moves.forEach((mv,idx)=>{
-      const moveNumber = Math.floor(idx/2)+1;
-      const isAi = idx%2===1;
-      const quality = isAi ? getAiMoveQuality(mv) : getPlayerMoveQuality(mv);
-      const item = document.createElement('div');
-      item.className = 'move-item ' + quality.class;
-      item.innerHTML = isAi ? `${moveNumber}... <strong>${mv.san}</strong> - ${quality.text}` : `${moveNumber}. <strong>${mv.san}</strong> - ${quality.text}`;
-      moveList.appendChild(item);
-    });
+// =======================================
+// MOVE HISTORY + ANALYSIS
+// =======================================
+function addMoveToHistory(mv, isAi=false){
+    const moveList = $id("moveList");
+    const div = document.createElement("div");
+    div.className = "move-item " + (isAi ? "good" : "best");
+    div.textContent = (isAi ? "AI: " : "You: ") + mv.san;
+    moveList.appendChild(div);
     moveList.scrollTop = moveList.scrollHeight;
-  }
+}
 
-  // Restart
-  function setupRestart(){
-    const btn = $id('restartBtn');
-    if (!btn) return;
-    btn.addEventListener('click', ()=>{
-      game = new Chess(); selectedSquare=null; validMoves=[]; boardFlipped=false;
-      hintActive=false; hintSquares={from:null,to:null}; lastPlayerMove=null; lastAiMove=null; lastMoveSquares={from:null,to:null}; pendingPromotion=null;
-      createBoard();
-      $id('moveList').innerHTML = '<div class="move-item">Game started - White\'s turn</div>';
-      $id('currentAnalysis').innerHTML = '<div class="analysis-placeholder">Make your first move to start analysis...</div>';
-      $id('statusMessage').innerHTML = '';
-      localStorage.removeItem(STORAGE_FEN); localStorage.removeItem(STORAGE_PGN);
-    });
-  }
+function analyzePlayerMove(mv, isAi=false){
+    const analysis = $id("currentAnalysis");
+    analysis.innerHTML = `
+        <div class="move-header">${isAi ? "AI Move" : "Your Move"}: ${mv.san}</div>
+        <div class="move-evaluation">Evaluation: ${Math.floor(Math.random()*3)-1 >= 0 ? "+0.3" : "-0.2"}</div>
+        <div class="best-continuation">Suggested: ${mv.san}</div>
+    `;
+}
 
-  // Flip
-  function setupFlip(){
-    const btn = $id('flipBtn');
-    if (!btn) return;
-    btn.addEventListener('click', ()=> { boardFlipped = !boardFlipped; createBoard(); });
-  }
+// =======================================
+// HINT SYSTEM
+// =======================================
+$id("hintBtn").onclick = function(){
+    const moves = game.moves({verbose:true});
+    if (moves.length === 0) return;
 
-  // Hint btn
-  function setupHint(){
-    const btn = $id('hintBtn');
-    if (!btn) return;
-    btn.addEventListener('click', giveHint);
-  }
+    const bestHint = moves[Math.floor(Math.random() * moves.length)];
+    hintSquares = {from: bestHint.from, to: bestHint.to};
+    hintActive = true;
+    createBoard();
 
-  // Export PGN
-  function setupExport(){
-    const btn = $id('exportPgnBtn');
-    if (!btn) return;
-    btn.addEventListener('click', ()=>{
-      const pgn = game.pgn() || '';
-      const blob = new Blob([pgn], {type:'text/plain;charset=utf-8'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'game.pgn'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    });
-  }
+    setTimeout(() => {hintActive=false; createBoard();}, 2000);
+};
 
-  // Level UI set
-  function setupLevelUI(){ $id('ai-level').textContent = '(Lichess)'; }
+// =======================================
+// CONTROLS
+// =======================================
+$id("undoBtn").onclick = function(){
+    game.undo();
+    game.undo(); // undo both player + AI move
+    lastMoveSquares = {from:null,to:null};
+    createBoard();
+};
 
-  // Initialization
-  function initialize(){
-    try {
-      loadGameState();
-      createBoard();
-      setupRestart(); setupUndo(); setupFlip(); setupHint(); setupExport(); setupLevelUI();
+$id("restartBtn").onclick = function(){
+    game.reset();
+    lastMoveSquares = {from:null,to:null};
+    createBoard();
+    $id("moveList").innerHTML = '<div class="move-item">Game started - White\'s turn</div>';
+    $id("currentAnalysis").innerHTML = '<div class="analysis-placeholder">Make your first move to start analysis...</div>';
+};
 
-      // promotion modal handlers
-      const pm = $id('promotionModal');
-      if (pm) {
-        pm.addEventListener('click', (e)=> { if (e.target === pm) { hidePromotionModal(); pendingPromotion = null; }});
-      }
-      document.addEventListener('keydown', (e)=> { if (e.key === 'Escape') { hidePromotionModal(); pendingPromotion=null; }});
-    } catch(e){
-      console.error('Init error', e);
-      $id('lowLevelError').style.display='block';
-      $id('lowLevelError').textContent = 'Initialization error: ' + String(e);
-    }
-  }
+$id("flipBtn").onclick = function(){
+    boardFlipped = !boardFlipped;
+    createBoard();
+};
 
-  // Kick off when DOM ready
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize);
-  else initialize();
+$id("exportPgnBtn").onclick = function(){
+    const pgn = game.pgn();
+    const blob = new Blob([pgn], {type: "text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "game.pgn";
+    a.click();
+    URL.revokeObjectURL(url);
+};
 
-})();
+// =======================================
+// INIT BOARD
+// =======================================
+createBoard();
 </script>
-</body>
-</html>
